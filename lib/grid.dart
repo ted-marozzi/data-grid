@@ -56,7 +56,7 @@ class _GridState extends State<Grid> {
   void initState() {
     super.initState();
     horizontalControllers = SyncScrollControllerGroup(
-      initialOffset: calculateColumnOffset(
+      initialScrollOffset: calculateColumnOffset(
         widget.initialColumnIndex,
       ),
     );
