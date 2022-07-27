@@ -133,6 +133,7 @@ class GridRows extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: SizedBox(
           width: columnWidths.fold<double>(
+            // remove the header row width
             -columnWidths.first,
             (previousValue, width) => previousValue + width,
           ),

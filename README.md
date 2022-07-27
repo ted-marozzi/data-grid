@@ -13,5 +13,8 @@ and the Flutter guide for
 
 # Grid
 
+This package is in development and breaking changes may be made without changes.
+Once stable this may be made into an actual package with semver versioning.
+
 Grid widget for dart that features a frozen left and header column
 ![grid](https://user-images.githubusercontent.com/38032037/180996354-9d39f39e-70f4-4bcc-8680-188591d77d99.gif)

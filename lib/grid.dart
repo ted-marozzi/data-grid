@@ -1,7 +1,7 @@
 library grid;
 
 import 'package:flutter/material.dart';
-import 'package:grid/src/grid.dart';
+import 'package:grid/src/components.dart';
 import 'package:sync_scroll_controller/sync_scroll_controller.dart';
 
 class Grid extends StatefulWidget {
@@ -10,17 +10,37 @@ class Grid extends StatefulWidget {
     Key? key,
     required this.columns,
     required this.rows,
+    // The height of the columns header.
     this.columnsHeaderHeight = 40,
+
+    /// The initial column to show
+    /// Set this to 1 to have the column at index 0 hidden by scroll
     this.initialColumnIndex = 0,
     this.defaultSortedColumnIndex = 0,
+
+    /// Scroll Physics for the [Grid]
     this.physics,
-    Widget Function(BuildContext, int)? horizontalSeparatorBuilder,
+
+    /// Horizontal separator for the grid header
+    /// e.g (context, index) => const Divider()
     Widget Function(BuildContext)? horizontalHeaderSeparatorBuilder,
-  }) : super(key: key) {
+
+    /// Horizontal separator for the grid body
+    /// e.g (context, index) => const Divider()
+    Widget Function(BuildContext, int)? horizontalSeparatorBuilder,
+  })  : assert(
+          rows.every((element) => element.children.length == columns.length),
+        ),
+        super(key: key) {
     this.horizontalSeparatorBuilder =
         horizontalSeparatorBuilder ?? (context, index) => Container();
     this.horizontalHeaderSeparatorBuilder =
         horizontalHeaderSeparatorBuilder ?? (context) => Container();
+
+    _removeHiddenColumns();
+  }
+
+  void _removeHiddenColumns() {
     int removed = 0;
     for (int i = 0; i < columns.length; i++) {
       if (columns[i].hide) {
@@ -32,6 +52,7 @@ class Grid extends StatefulWidget {
     }
     columns.removeWhere((element) => element.hide);
   }
+
   late final Widget Function(BuildContext, int) horizontalSeparatorBuilder;
   late final Widget Function(BuildContext) horizontalHeaderSeparatorBuilder;
   final double columnsHeaderHeight;
@@ -65,11 +86,8 @@ class _GridState extends State<Grid> {
     rowsControllerX = horizontalControllers.addAndGet();
     rowHeaderController = verticalControllers.addAndGet();
     columnHeaderController = horizontalControllers.addAndGet();
-    widget.rows.sort(
-      (a, b) => a.children[widget.defaultSortedColumnIndex].value.compareTo(
-        b.children[widget.defaultSortedColumnIndex].value,
-      ),
-    );
+
+    sortByColumn(widget.defaultSortedColumnIndex, false);
   }
 
   double calculateColumnOffset(int index) {
@@ -89,11 +107,11 @@ class _GridState extends State<Grid> {
     }
   }
 
-  void sortByColumn(int columnIndex) {
+  void sortByColumn(int columnIndex, [bool showSortIcon = true]) {
     final column = widget.columns[columnIndex];
     column.sortingState =
         column.sortingState.getNextState(column.ascendingFirst);
-    resetSortingState(columnIndex);
+    resetSortingState(showSortIcon ? columnIndex : null);
     switch (column.sortingState) {
       case SortingState.ascending:
         widget.rows.sort(
@@ -143,7 +161,6 @@ class _GridState extends State<Grid> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Row Header
               GridRowHeader(
                 physics: widget.physics,
                 rows: widget.rows,
