@@ -77,11 +77,9 @@ packages:
   grid:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "058d5a35e53119bc606f9541ff13327389cb537a"
-      url: "https://github.com/ted-marozzi/grid"
-    source: git
+      path: ".."
+      relative: true
+    source: path
     version: "0.0.1"
   intl:
     dependency: transitive

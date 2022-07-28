@@ -66,6 +66,9 @@ class Grid extends StatefulWidget {
 }
 
 class _GridState extends State<Grid> {
+  late List<GridColumn> columns;
+  late List<GridRow> rows;
+
   late ScrollController rowHeaderController;
   late ScrollController columnHeaderController;
   late ScrollController rowsControllerY;
@@ -76,6 +79,8 @@ class _GridState extends State<Grid> {
   @override
   void initState() {
     super.initState();
+    columns = widget.columns.toList();
+    rows = widget.rows.toList();
     horizontalControllers = SyncScrollControllerGroup(
       initialScrollOffset: calculateColumnOffset(
         widget.initialColumnIndex,
@@ -93,35 +98,35 @@ class _GridState extends State<Grid> {
   double calculateColumnOffset(int index) {
     double offset = 0;
     for (int i = 1; i < index + 1; i++) {
-      offset += widget.columns[i].width;
+      offset += columns[i].width;
     }
     return offset;
   }
 
   void resetSortingState([int? excludeColumnIndex]) {
-    for (var i = 0; i < widget.columns.length; i++) {
+    for (var i = 0; i < columns.length; i++) {
       if (i == excludeColumnIndex) {
         continue;
       }
-      widget.columns[i].sortingState = SortingState.none;
+      columns[i].sortingState = SortingState.none;
     }
   }
 
   void sortByColumn(int columnIndex, [bool showSortIcon = true]) {
-    final column = widget.columns[columnIndex];
+    final column = columns[columnIndex];
     column.sortingState =
         column.sortingState.getNextState(column.ascendingFirst);
     resetSortingState(showSortIcon ? columnIndex : null);
     switch (column.sortingState) {
       case SortingState.ascending:
-        widget.rows.sort(
+        rows.sort(
           (a, b) => a.children[columnIndex].value.compareTo(
             b.children[columnIndex].value,
           ),
         );
         break;
       case SortingState.descending:
-        widget.rows.sort(
+        rows.sort(
           (a, b) => b.children[columnIndex].value.compareTo(
             a.children[columnIndex].value,
           ),
@@ -129,7 +134,7 @@ class _GridState extends State<Grid> {
         break;
       case SortingState.none:
         sortByColumn(0);
-        widget.columns.first.sortingState = SortingState.none;
+        columns.first.sortingState = SortingState.none;
         break;
     }
     setState(() {});
@@ -153,7 +158,7 @@ class _GridState extends State<Grid> {
           physics: widget.physics,
           columnsHeaderHeight: widget.columnsHeaderHeight,
           sortByColumn: sortByColumn,
-          columns: widget.columns,
+          columns: columns,
           scrollController: columnHeaderController,
         ),
         widget.horizontalHeaderSeparatorBuilder(context),
@@ -163,15 +168,15 @@ class _GridState extends State<Grid> {
             children: [
               GridRowHeader(
                 physics: widget.physics,
-                rows: widget.rows,
-                width: widget.columns.first.width,
+                rows: rows,
+                width: columns.first.width,
                 scrollController: rowHeaderController,
                 separatorBuilder: widget.horizontalSeparatorBuilder,
               ),
               GridRows(
                 physics: widget.physics,
-                rows: widget.rows,
-                columnWidths: widget.columns.map((e) => e.width).toList(),
+                rows: rows,
+                columnWidths: columns.map((e) => e.width).toList(),
                 horizontalSeparatorBuilder: widget.horizontalSeparatorBuilder,
                 rowsControllerY: rowsControllerY,
                 rowsControllerX: rowsControllerX,

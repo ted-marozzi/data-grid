@@ -31,8 +31,7 @@ dependencies:
     sdk: flutter
 
   grid:
-    git:
-      url: https://github.com/ted-marozzi/grid
+    path: ../
 
 
   # The following adds the Cupertino Icons font to your application.
