@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:grid/grid.dart';
+import 'package:data_grid/grid.dart';
 
 Grid generateGrid(
   int numRows,
@@ -19,7 +19,7 @@ Grid generateGrid(
 }) {
   final columns = List.generate(
     numColumns,
-    (index) => GridColumn(
+    (index) => GridColumn.fixedWidth(
       hide: hiddenColumns.contains(index),
       ascendingFirst: true,
       width: 180,
@@ -32,8 +32,8 @@ Grid generateGrid(
     (rowIndex) => GridRow(
       children: List.generate(
         columns.length,
-        (columnIndex) => GridCell(
-          value: "Row: $rowIndex, Column: $columnIndex",
+        (columnIndex) => GridCell.fixedWidth(
+          sortValue: "Row: $rowIndex, Column: $columnIndex",
           child: Text("Row: $rowIndex, Column: $columnIndex"),
         ),
       ),
@@ -64,23 +64,23 @@ void main() {
     final grid = generateGrid(6, 5);
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: grid)));
     await tester.pumpAndSettle();
-    expect(grid.rows.first.children[1].value, "Row: 0, Column: 1");
+    expect(grid.rows.first.children[1].sortValue, "Row: 0, Column: 1");
     expect(find.byIcon(Icons.arrow_upward_rounded), findsNothing);
     expect(find.byIcon(Icons.arrow_downward_rounded), findsNothing);
 
     await tester.tap(find.text("Header 2"));
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.arrow_upward_rounded), findsOneWidget);
-    expect(grid.rows.first.children[1].value, "Row: 0, Column: 1");
+    expect(grid.rows.first.children[1].sortValue, "Row: 0, Column: 1");
 
     await tester.tap(find.text("Header 2"));
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.arrow_downward_rounded), findsOneWidget);
-    expect(grid.rows.first.children[1].value, "Row: 5, Column: 1");
+    expect(grid.rows.first.children[1].sortValue, "Row: 5, Column: 1");
 
     await tester.tap(find.text("Header 2"));
     await tester.pumpAndSettle();
-    expect(grid.rows.first.children.first.value, "Row: 0, Column: 0");
+    expect(grid.rows.first.children.first.sortValue, "Row: 0, Column: 0");
     expect(find.byIcon(Icons.arrow_upward_rounded), findsNothing);
     expect(find.byIcon(Icons.arrow_downward_rounded), findsNothing);
   });

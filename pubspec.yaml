@@ -1,9 +1,7 @@
-name: grid
-description: A new Flutter package project.
+name: data_grid
+description: High Performance Data Grid
 version: 0.0.1
 homepage: "https://github.com/ted-marozzi/grid"
-
-publish_to: "none"
 
 environment:
   sdk: ">=2.17.6 <3.0.0"
@@ -12,10 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  sync_scroll_controller:
-    git:
-      url: https://github.com/ted-marozzi/sync-scroll-controller
-      ref: 798e109a6fa5afa66362999f1a982440f9397ecb
+  sync_scroll_controller: ^1.0.0
+
 
 dev_dependencies:
   flutter_test:

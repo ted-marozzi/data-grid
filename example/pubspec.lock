@@ -159,12 +159,10 @@ packages:
   sync_scroll_controller:
     dependency: transitive
     description:
-      path: "."
-      ref: "798e109a6fa5afa66362999f1a982440f9397ecb"
-      resolved-ref: "798e109a6fa5afa66362999f1a982440f9397ecb"
-      url: "https://github.com/ted-marozzi/sync-scroll-controller"
-    source: git
-    version: "0.0.1"
+      name: sync_scroll_controller
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   term_glyph:
     dependency: transitive
     description:

@@ -92,10 +92,10 @@ class GridColumnHeaderCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: column.sortingState.getIcon(),
     );
-    return InkWell(
-      onTap: sortColumn,
-      child: SizedBox(
-        width: column.width,
+    return SizedBox(
+      width: column.width,
+      child: InkWell(
+        onTap: sortColumn,
         child: Row(
           mainAxisAlignment: column.mainAxisAlignment,
           children: [
