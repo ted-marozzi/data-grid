@@ -17,7 +17,7 @@ Grid widget for dart that features a frozen left and header column
 In the command line
 
 ```bash
-flutter pub get linked_scroll_controller
+flutter pub get data_grid
 ```
 
 ## Usage
