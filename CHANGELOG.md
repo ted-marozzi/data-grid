@@ -5,3 +5,4 @@
 ## 0.0.2
 
 - Update docs issue
+- Update import name

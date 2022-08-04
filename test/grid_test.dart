@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:data_grid/grid.dart';
+import 'package:data_grid/data_grid.dart';
 
 Grid generateGrid(
   int numRows,

@@ -1,5 +1,5 @@
+import 'package:data_grid/grid.dart';
 import 'package:flutter/material.dart';
-import 'package:grid/grid.dart';
 
 void main() {
   runApp(const MyApp());

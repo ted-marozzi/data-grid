@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../grid.dart';
+import '../data_grid.dart';
 
 class GridRowHeader extends StatelessWidget {
   const GridRowHeader({
