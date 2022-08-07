@@ -6,3 +6,7 @@
 
 - Update docs issue
 - Update import name
+
+## 0.0.3
+
+- Updated documentation

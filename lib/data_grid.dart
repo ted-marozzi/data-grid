@@ -6,18 +6,26 @@ import 'package:flutter/material.dart';
 import 'package:data_grid/src/components.dart';
 import 'package:sync_scroll_controller/sync_scroll_controller.dart';
 
+/// The [Grid]
 class Grid extends StatefulWidget {
   /// Create a [Grid]
   Grid({
     Key? key,
+
+    /// The columns headings of the grid
     required this.columns,
+
+    /// The rows of the grid
     required this.rows,
-    // The height of the columns header.
+
+    /// The height of the columns header.
     this.columnsHeaderHeight = 40,
 
     /// The initial column to show
     /// Set this to 1 to have the column at index 0 hidden by scroll
     this.initialColumnIndex = 0,
+
+    /// The column index to sort initially
     this.defaultSortedColumnIndex = 0,
 
     /// Scroll Physics for the [Grid]
@@ -40,13 +48,27 @@ class Grid extends StatefulWidget {
         horizontalHeaderSeparatorBuilder ?? (context) => Container();
   }
 
+  /// Horizontal separator for the grid body
   late final Widget Function(BuildContext, int) horizontalSeparatorBuilder;
+
+  /// Horizontal separator for the grid header
   late final Widget Function(BuildContext) horizontalHeaderSeparatorBuilder;
+  // The height of the columns header
   final double columnsHeaderHeight;
+
+  /// The columns headings of the grid
   final List<GridColumn> columns;
+
+  /// The rows of the grid
   final List<GridRow> rows;
+
+  /// The initial column to show
   final int initialColumnIndex;
+
+  /// The column index to sort initially
   final int defaultSortedColumnIndex;
+
+  /// Scroll Physics for the [Grid]
   final ScrollPhysics? physics;
   @override
   State<Grid> createState() => _GridState();
@@ -159,20 +181,21 @@ class _GridState extends State<Grid> {
     GridColumn column,
     List<GridRow> rows,
   ) {
-    assert(column.autoFitColumnData != null);
+    assert(column._autoFitColumnData != null);
 
     const sortIconWidth = 20;
     const sortIconPadding = 8;
-    double width = textWidth(
-          column.autoFitColumnData!.text,
-          column.autoFitColumnData?.style,
+    double width = _textWidth(
+          column._autoFitColumnData!.text,
+          column._autoFitColumnData?.style,
         ) +
         sortIconWidth +
         sortIconPadding +
-        (column.autoFitColumnData!.padding?.horizontal ?? 0);
+        (column._autoFitColumnData!.padding?.horizontal ?? 0);
 
     for (int j = 0; j < widget.rows.length; j++) {
-      final autoFitColumnData = rows[j].children[columnIndex].autoFitColumnData;
+      final autoFitColumnData =
+          rows[j].children[columnIndex]._autoFitColumnData;
       if (autoFitColumnData == null) {
         throw ArgumentError(
           "Column(${column.child}): $columnIndex was a GridColumn.autoFitWidth column but GridCell Column: $columnIndex Row: $j was not a GridCell.autoFitWidth. Every cell in an GridColumn.autoFitWidth column must be an GridCell.autoFitWidth cell.",
@@ -180,7 +203,7 @@ class _GridState extends State<Grid> {
       }
       width = max(
         width,
-        textWidth(
+        _textWidth(
               autoFitColumnData.text,
               autoFitColumnData.style,
             ) +
@@ -241,7 +264,7 @@ class _GridState extends State<Grid> {
   }
 }
 
-double textWidth(String text, TextStyle? style) {
+double _textWidth(String text, TextStyle? style) {
   final TextPainter textPainter = TextPainter(
     text: TextSpan(text: text, style: style),
     maxLines: 1,
@@ -250,7 +273,11 @@ double textWidth(String text, TextStyle? style) {
   return textPainter.size.width;
 }
 
+/// [GridCell] contains the information to display a Grid Cell Widget
 class GridCell<T extends Comparable<dynamic>> {
+  /// Must be placed in a [GridColumn.autoFitWidth] column
+  /// Will sized to the width of the widest cell in the column
+  /// efficiently for large data sets
   GridCell.autoFitWidth({
     required this.sortValue,
     required String text,
@@ -269,31 +296,44 @@ class GridCell<T extends Comparable<dynamic>> {
             style: style,
           ),
         ),
-        autoFitColumnData = AutoFitColumnData(
+        _autoFitColumnData = _AutoFitColumnData(
           text: text,
           style: style ?? DefaultTextStyle.of(context!).style,
           padding: padding,
         );
 
+  /// Must be placed in a [GridColumn.fixedWidth] column
+  /// Will sized to the fixed width of the column
   const GridCell.fixedWidth({
     required this.sortValue,
     required this.child,
-  }) : autoFitColumnData = null;
+  }) : _autoFitColumnData = null;
 
   final Widget child;
   final T sortValue;
-  final AutoFitColumnData? autoFitColumnData;
+  final _AutoFitColumnData? _autoFitColumnData;
 }
 
-class AutoFitColumnData {
-  const AutoFitColumnData({
+/// Describes the data needed to size a column to the width of the widest cell
+class _AutoFitColumnData {
+  const _AutoFitColumnData({
+    /// The text to display
     required this.text,
+
+    /// The style of the text
     required this.style,
+
+    /// The padding of the text
     this.padding,
   });
 
+  /// The text to display
   final String text;
+
+  /// The style of the text
   final TextStyle style;
+
+  /// The padding of the text
   final EdgeInsets? padding;
 }
 
@@ -302,20 +342,37 @@ class GridColumn {
   /// in the column.
   /// Has to be a String so we can calculate the width of the text.
   GridColumn.autoFitWidth({
+    /// The text to display
     required String text,
+
+    /// Context to calculate the default text style if no text style is provided
     BuildContext? context,
+
+    /// The text style
     TextStyle? style,
+
+    /// The alignment of the text in the [GridCell]
     Alignment alignment = Alignment.centerRight,
+
+    /// The text alignment of the text
     TextAlign textAlign = TextAlign.right,
+
+    /// The padding of the text
     EdgeInsets? padding,
 
-    // Common properties
+    /// Whether to sort ascending first
     this.ascendingFirst = false,
+
+    /// Whether sort icon should be first or last
     this.trailingIcon = false,
+
+    /// Whether mainAxisAlignment should be start or end
     this.mainAxisAlignment = MainAxisAlignment.end,
+
+    /// Whether to hide this column or not
     this.hide = false,
   })  : assert(context != null || style != null),
-        autoFitColumnData = AutoFitColumnData(
+        _autoFitColumnData = _AutoFitColumnData(
           text: text,
           style: style ?? DefaultTextStyle.of(context!).style,
           padding: padding,
@@ -339,14 +396,13 @@ class GridColumn {
     this.trailingIcon = false,
     this.mainAxisAlignment = MainAxisAlignment.end,
     this.hide = false,
-  })  : autoFitColumnData = null,
+  })  : _autoFitColumnData = null,
         autoFitWidth = false,
         assert(width > 0);
 
   final Widget child;
 
-  // AutoFit
-  final AutoFitColumnData? autoFitColumnData;
+  final _AutoFitColumnData? _autoFitColumnData;
   final bool autoFitWidth;
   // Fixed width
   double width;
@@ -367,11 +423,13 @@ class GridRow {
   final double height;
 }
 
+/// The current sorting state of a column
 enum SortingState {
   descending,
   ascending,
   none;
 
+  /// The icon to display for the current sorting state
   Widget getIcon() {
     switch (this) {
       case SortingState.ascending:
@@ -389,6 +447,7 @@ enum SortingState {
     }
   }
 
+  /// The next sorting state
   SortingState getNextState(bool ascendingFirst) {
     if (ascendingFirst) {
       switch (this) {
