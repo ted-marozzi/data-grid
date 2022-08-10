@@ -1,6 +1,6 @@
 name: data_grid
 description: High Performance Data Grid designed for large numeric data sets
-version: 0.0.3
+version: 0.0.4
 homepage: "https://github.com/ted-marozzi/grid"
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  sync_scroll_controller: ^1.0.0
+  sync_scroll_controller: ^1.0.1
 
 
 dev_dependencies:
