@@ -1,3 +1,8 @@
+## 0.0.5
+
+- Changed implementation to use a virtual index array instead of mutating the
+ rows and columns to hide a column for performance and usability reasons.
+
 ## 0.0.4
 
 - Updated dependency
