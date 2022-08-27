@@ -68,7 +68,7 @@ class Grid extends StatefulWidget {
   /// The column index to sort initially
   final int defaultSortedColumnIndex;
 
-  /// Scroll Physics for the [Grid]
+  /// Scroll Physics for the [Gr  id]
   final ScrollPhysics? physics;
   @override
   State<Grid> createState() => _GridState();
@@ -149,17 +149,37 @@ class _GridState extends State<Grid> {
     setState(() {});
   }
 
-  void removeHiddenColumns(List<GridColumn> columns, List<GridRow> rows) {
-    int removed = 0;
-    for (int i = 0; i < columns.length; i++) {
-      if (columns[i].hide) {
-        for (GridRow row in rows) {
-          row.children.removeAt(i - removed);
-        }
-        removed++;
+  void resortBySortedColumn() {
+    for (int i = 0; i < widget.columns.length; i++) {
+      switch (widget.columns[i].sortingState) {
+        case SortingState.descending:
+          widget.rows.sort(
+            (a, b) => a.children[i].sortValue.compareTo(
+              b.children[i].sortValue,
+            ),
+          );
+          return;
+        case SortingState.ascending:
+          widget.rows.sort(
+            (a, b) => b.children[i].sortValue.compareTo(
+              a.children[i].sortValue,
+            ),
+          );
+          return;
+        case SortingState.none:
+          continue;
       }
     }
-    columns.removeWhere((element) => element.hide);
+  }
+
+  List<int> createVirtualColumnIndices() {
+    List<int> result = [];
+    for (int i = 0; i < widget.columns.length; i++) {
+      if (!widget.columns[i].hide) {
+        result.add(i);
+      }
+    }
+    return result;
   }
 
   void sizeColumns(List<GridColumn> columns, List<GridRow> rows) {
@@ -222,10 +242,20 @@ class _GridState extends State<Grid> {
     super.dispose();
   }
 
+  List<double> calculateColumnWidths(List<int> indices) {
+    List<double> result = [];
+    for (int index in indices) {
+      result.add(widget.columns[index].width);
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    removeHiddenColumns(widget.columns, widget.rows);
+    final indices = createVirtualColumnIndices();
     sizeColumns(widget.columns, widget.rows);
+    resortBySortedColumn();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -234,6 +264,7 @@ class _GridState extends State<Grid> {
           columnsHeaderHeight: widget.columnsHeaderHeight,
           sortByColumn: sortByColumn,
           columns: widget.columns,
+          indices: indices,
           scrollController: columnHeaderController,
         ),
         widget.horizontalHeaderSeparatorBuilder(context),
@@ -249,9 +280,10 @@ class _GridState extends State<Grid> {
                 separatorBuilder: widget.horizontalSeparatorBuilder,
               ),
               GridRows(
+                indices: indices,
                 physics: widget.physics,
                 rows: widget.rows,
-                columnWidths: widget.columns.map((e) => e.width).toList(),
+                columnWidths: calculateColumnWidths(indices),
                 horizontalSeparatorBuilder: widget.horizontalSeparatorBuilder,
                 rowsControllerY: rowsControllerY,
                 rowsControllerX: rowsControllerX,
@@ -410,7 +442,7 @@ class GridColumn {
   final bool ascendingFirst;
   final bool trailingIcon;
   final MainAxisAlignment mainAxisAlignment;
-  final bool hide;
+  bool hide;
   SortingState sortingState = SortingState.none;
 }
 
