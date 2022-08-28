@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Added some convenience constructors and changed some implementation details
+
 ## 0.0.6
 
 - Changed a default padding
