@@ -315,7 +315,7 @@ class GridCell<T extends Comparable<dynamic>> {
     required String text,
     TextStyle? style,
     BuildContext? context,
-    EdgeInsets? padding = const EdgeInsets.only(left: 16),
+    EdgeInsets? padding = EdgeInsets.zero,
     Alignment alignment = Alignment.centerRight,
     TextAlign textAlign = TextAlign.right,
   })  : assert(style != null || context != null),

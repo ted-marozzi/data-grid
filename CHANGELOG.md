@@ -1,3 +1,7 @@
+## 0.0.6
+
+- Changed a default padding
+
 ## 0.0.5
 
 - Changed implementation to use a virtual index array instead of mutating the
