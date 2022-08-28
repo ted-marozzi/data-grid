@@ -1,3 +1,16 @@
+## 0.0.7
+
+- Added some convenience constructors and changed some implementation details
+
+## 0.0.6
+
+- Changed a default padding
+
+## 0.0.5
+
+- Changed implementation to use a virtual index array instead of mutating the
+ rows and columns to hide a column for performance and usability reasons.
+
 ## 0.0.4
 
 - Updated dependency

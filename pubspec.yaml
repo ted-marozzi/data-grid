@@ -1,6 +1,6 @@
 name: data_grid
 description: High Performance Data Grid designed for large numeric data sets
-version: 0.0.4
+version: 0.0.7
 homepage: "https://github.com/ted-marozzi/grid"
 
 environment:

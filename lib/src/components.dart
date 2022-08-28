@@ -45,10 +45,12 @@ class GridColumnHeader extends StatelessWidget {
     required this.columns,
     required this.scrollController,
     required this.physics,
+    required this.indices,
   }) : super(key: key);
   final List<GridColumn> columns;
   final ScrollController scrollController;
   final ScrollPhysics? physics;
+  final List<int> indices;
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -57,20 +59,22 @@ class GridColumnHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           GridColumnHeaderCell(
-            sortColumn: () => sortByColumn(0),
-            column: columns.first,
+            sortColumn: () => sortByColumn(indices.first),
+            column: columns[indices.first],
           ),
           Expanded(
             child: ListView.builder(
-              physics: physics,
-              controller: scrollController,
-              scrollDirection: Axis.horizontal,
-              itemCount: columns.length - 1,
-              itemBuilder: (context, columnIndex) => GridColumnHeaderCell(
-                sortColumn: () => sortByColumn(columnIndex + 1),
-                column: columns[columnIndex + 1],
-              ),
-            ),
+                physics: physics,
+                controller: scrollController,
+                scrollDirection: Axis.horizontal,
+                itemCount: indices.length - 1,
+                itemBuilder: (context, columnIndex) {
+                  int index = indices[columnIndex + 1];
+                  return GridColumnHeaderCell(
+                    sortColumn: () => sortByColumn(index),
+                    column: columns[index],
+                  );
+                }),
           ),
         ],
       ),
@@ -118,12 +122,15 @@ class GridRows extends StatelessWidget {
     required this.rowsControllerX,
     required this.rowsControllerY,
     required this.physics,
+    required this.indices,
   }) : super(key: key);
   final List<GridRow> rows;
   final List<double> columnWidths;
   final Widget Function(BuildContext, int) horizontalSeparatorBuilder;
   final ScrollController rowsControllerX, rowsControllerY;
   final ScrollPhysics? physics;
+  final List<int> indices;
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -144,11 +151,11 @@ class GridRows extends StatelessWidget {
             itemCount: rows.length,
             itemBuilder: (context, rowIndex) => Row(
               children: [
-                for (int i = 1; i < columnWidths.length; i++)
+                for (int i = 1; i < indices.length; i++)
                   SizedBox(
                     height: rows[rowIndex].height,
                     width: columnWidths[i],
-                    child: rows[rowIndex].children[i].child,
+                    child: rows[rowIndex].children[indices[i]].child,
                   ),
               ],
             ),

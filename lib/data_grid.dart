@@ -81,6 +81,7 @@ class _GridState extends State<Grid> {
   late ScrollController rowsControllerX;
   final verticalControllers = SyncScrollControllerGroup();
   late final SyncScrollControllerGroup horizontalControllers;
+  List<int> indices = [];
 
   @override
   void initState() {
@@ -95,6 +96,8 @@ class _GridState extends State<Grid> {
     rowsControllerX = horizontalControllers.addAndGet();
     rowHeaderController = verticalControllers.addAndGet();
     columnHeaderController = horizontalControllers.addAndGet();
+
+    indices = createVirtualColumnIndices();
 
     sortByColumn(widget.defaultSortedColumnIndex, false);
   }
@@ -125,7 +128,6 @@ class _GridState extends State<Grid> {
     final column = widget.columns[columnIndex];
     column.sortingState =
         column.sortingState.getNextState(column.ascendingFirst);
-    resetSortingState(showSortIcon ? columnIndex : null);
     switch (column.sortingState) {
       case SortingState.ascending:
         widget.rows.sort(
@@ -142,24 +144,46 @@ class _GridState extends State<Grid> {
         );
         break;
       case SortingState.none:
-        sortByColumn(0);
-        widget.columns.first.sortingState = SortingState.none;
+        sortByColumn(widget.defaultSortedColumnIndex);
+        widget.columns[indices.first].sortingState = SortingState.none;
         break;
     }
+    resetSortingState(showSortIcon ? columnIndex : null);
+
     setState(() {});
   }
 
-  void removeHiddenColumns(List<GridColumn> columns, List<GridRow> rows) {
-    int removed = 0;
-    for (int i = 0; i < columns.length; i++) {
-      if (columns[i].hide) {
-        for (GridRow row in rows) {
-          row.children.removeAt(i - removed);
-        }
-        removed++;
+  void resortBySortedColumn() {
+    for (int i = 0; i < widget.columns.length; i++) {
+      switch (widget.columns[i].sortingState) {
+        case SortingState.ascending:
+          widget.rows.sort(
+            (a, b) => a.children[i].sortValue.compareTo(
+              b.children[i].sortValue,
+            ),
+          );
+          return;
+        case SortingState.descending:
+          widget.rows.sort(
+            (a, b) => b.children[i].sortValue.compareTo(
+              a.children[i].sortValue,
+            ),
+          );
+          return;
+        case SortingState.none:
+          continue;
       }
     }
-    columns.removeWhere((element) => element.hide);
+  }
+
+  List<int> createVirtualColumnIndices() {
+    List<int> result = [];
+    for (int i = 0; i < widget.columns.length; i++) {
+      if (!widget.columns[i].hide) {
+        result.add(i);
+      }
+    }
+    return result;
   }
 
   void sizeColumns(List<GridColumn> columns, List<GridRow> rows) {
@@ -222,10 +246,20 @@ class _GridState extends State<Grid> {
     super.dispose();
   }
 
+  List<double> calculateColumnWidths(List<int> indices) {
+    List<double> result = [];
+    for (int index in indices) {
+      result.add(widget.columns[index].width);
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    removeHiddenColumns(widget.columns, widget.rows);
+    indices = createVirtualColumnIndices();
     sizeColumns(widget.columns, widget.rows);
+    resortBySortedColumn();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -234,6 +268,7 @@ class _GridState extends State<Grid> {
           columnsHeaderHeight: widget.columnsHeaderHeight,
           sortByColumn: sortByColumn,
           columns: widget.columns,
+          indices: indices,
           scrollController: columnHeaderController,
         ),
         widget.horizontalHeaderSeparatorBuilder(context),
@@ -249,9 +284,10 @@ class _GridState extends State<Grid> {
                 separatorBuilder: widget.horizontalSeparatorBuilder,
               ),
               GridRows(
+                indices: indices,
                 physics: widget.physics,
                 rows: widget.rows,
-                columnWidths: widget.columns.map((e) => e.width).toList(),
+                columnWidths: calculateColumnWidths(indices),
                 horizontalSeparatorBuilder: widget.horizontalSeparatorBuilder,
                 rowsControllerY: rowsControllerY,
                 rowsControllerX: rowsControllerX,
@@ -278,40 +314,78 @@ class GridCell<T extends Comparable<dynamic>> {
   /// Must be placed in a [GridColumn.autoFitWidth] column
   /// Will sized to the width of the widest cell in the column
   /// efficiently for large data sets
+  /// Has center align defaults, try [GridCell.autofitWidthLeftAlign] and
+  /// [GridCell.autoFitWidthRightAlign] for other alignments
   GridCell.autoFitWidth({
-    required this.sortValue,
     required String text,
+    T? sortValue,
     TextStyle? style,
     BuildContext? context,
-    EdgeInsets? padding = const EdgeInsets.only(left: 16),
+    EdgeInsets padding = EdgeInsets.zero,
+    Alignment alignment = Alignment.center,
+    TextAlign textAlign = TextAlign.center,
+  })  : assert(style != null || context != null),
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
+        sortValue = sortValue ?? text as T;
+
+  /// Autofit width with defaults to suit text data such as left alignment
+  GridCell.autoFitWidthLeftAlign({
+    required String text,
+    T? sortValue,
+    TextStyle? style,
+    BuildContext? context,
+    EdgeInsets padding = const EdgeInsets.only(left: 12.0),
+    Alignment alignment = Alignment.centerLeft,
+    TextAlign textAlign = TextAlign.left,
+  })  : assert(style != null || context != null),
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
+        sortValue = sortValue ?? text as T;
+
+  /// Autofit width with defaults to suit numeric data such as right alignment
+  GridCell.autoFitWidthRightAlign({
+    required String text,
+    T? sortValue,
+    TextStyle? style,
+    BuildContext? context,
+    EdgeInsets padding = const EdgeInsets.only(right: 12.0),
     Alignment alignment = Alignment.centerRight,
     TextAlign textAlign = TextAlign.right,
   })  : assert(style != null || context != null),
-        child = Container(
-          alignment: alignment,
-          padding: padding,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style,
-          ),
-        ),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        );
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
+        sortValue = sortValue ?? text as T;
 
   /// Must be placed in a [GridColumn.fixedWidth] column
   /// Will sized to the fixed width of the column
-  const GridCell.fixedWidth({
+  GridCell.fixedWidth({
     required this.sortValue,
     required this.child,
   }) : _autoFitColumnData = null;
 
-  final Widget child;
-  final T sortValue;
+  Widget child;
+  T sortValue;
   final _AutoFitColumnData? _autoFitColumnData;
+}
+
+Widget _createChild(Alignment alignment, EdgeInsets padding, String text,
+    TextAlign textAlign, TextStyle? style, BuildContext? context) {
+  return Container(
+    alignment: alignment,
+    padding: padding,
+    child: Text(
+      text,
+      textAlign: textAlign,
+      style: style ?? DefaultTextStyle.of(context!).style,
+    ),
+  );
 }
 
 /// Describes the data needed to size a column to the width of the widest cell
@@ -337,11 +411,58 @@ class _AutoFitColumnData {
   final EdgeInsets? padding;
 }
 
+_AutoFitColumnData _createAutoFitColumnData(
+    EdgeInsets padding, String text, TextStyle? style, BuildContext? context) {
+  return _AutoFitColumnData(
+    text: text,
+    style: style ?? DefaultTextStyle.of(context!).style,
+    padding: padding,
+  );
+}
+
 class GridColumn {
   /// autoFitWidth Columns will be resized to fit the width of the largest cell
   /// in the column.
   /// Has to be a String so we can calculate the width of the text.
   GridColumn.autoFitWidth({
+    /// The text to display
+    required String text,
+
+    /// Context to calculate the default text style if no text style is provided
+    BuildContext? context,
+
+    /// The text style
+    TextStyle? style,
+
+    /// The alignment of the text in the [GridCell]
+    Alignment alignment = Alignment.center,
+
+    /// The text alignment of the text
+    TextAlign textAlign = TextAlign.center,
+
+    /// The padding of the text
+    EdgeInsets padding = EdgeInsets.zero,
+
+    /// Whether to sort ascending first
+    this.ascendingFirst = true,
+
+    /// Whether sort icon should be first or last
+    this.trailingIcon = false,
+
+    /// Whether mainAxisAlignment should be start or end
+    this.mainAxisAlignment = MainAxisAlignment.spaceEvenly,
+
+    /// Whether to hide this column or not
+    this.hide = false,
+  })  : assert(context != null || style != null),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
+        autoFitWidth = true,
+        width = -1,
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context);
+
+  GridColumn.autoFitWidthRightAlign({
     /// The text to display
     required String text,
 
@@ -358,7 +479,7 @@ class GridColumn {
     TextAlign textAlign = TextAlign.right,
 
     /// The padding of the text
-    EdgeInsets? padding,
+    EdgeInsets padding = const EdgeInsets.only(right: 12.0),
 
     /// Whether to sort ascending first
     this.ascendingFirst = false,
@@ -372,23 +493,50 @@ class GridColumn {
     /// Whether to hide this column or not
     this.hide = false,
   })  : assert(context != null || style != null),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        ),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
         autoFitWidth = true,
         width = -1,
-        child = Container(
-          padding: padding,
-          alignment: alignment,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style,
-          ),
-        );
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context);
 
+  GridColumn.autoFitWidthLeftAlign({
+    /// The text to display
+    required String text,
+
+    /// Context to calculate the default text style if no text style is provided
+    BuildContext? context,
+
+    /// The text style
+    TextStyle? style,
+
+    /// The alignment of the text in the [GridCell]
+    Alignment alignment = Alignment.centerLeft,
+
+    /// The text alignment of the text
+    TextAlign textAlign = TextAlign.center,
+
+    /// The padding of the text
+    EdgeInsets padding = const EdgeInsets.only(left: 12.0),
+
+    /// Whether to sort ascending first
+    this.ascendingFirst = true,
+
+    /// Whether sort icon should be first or last
+    this.trailingIcon = true,
+
+    /// Whether mainAxisAlignment should be start or end
+    this.mainAxisAlignment = MainAxisAlignment.start,
+
+    /// Whether to hide this column or not
+    this.hide = false,
+  })  : assert(context != null || style != null),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
+        autoFitWidth = true,
+        width = -1,
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context);
   GridColumn.fixedWidth({
     required this.child,
     this.width = 80,
@@ -410,7 +558,7 @@ class GridColumn {
   final bool ascendingFirst;
   final bool trailingIcon;
   final MainAxisAlignment mainAxisAlignment;
-  final bool hide;
+  bool hide;
   SortingState sortingState = SortingState.none;
 }
 
