@@ -68,7 +68,7 @@ class Grid extends StatefulWidget {
   /// The column index to sort initially
   final int defaultSortedColumnIndex;
 
-  /// Scroll Physics for the [Gr  id]
+  /// Scroll Physics for the [Grid]
   final ScrollPhysics? physics;
   @override
   State<Grid> createState() => _GridState();
@@ -314,6 +314,8 @@ class GridCell<T extends Comparable<dynamic>> {
   /// Must be placed in a [GridColumn.autoFitWidth] column
   /// Will sized to the width of the widest cell in the column
   /// efficiently for large data sets
+  /// Has center align defaults, try [GridCell.autofitWidthLeftAlign] and
+  /// [GridCell.autoFitWidthRightAlign] for other alignments
   GridCell.autoFitWidth({
     required String text,
     T? sortValue,
@@ -323,20 +325,10 @@ class GridCell<T extends Comparable<dynamic>> {
     Alignment alignment = Alignment.center,
     TextAlign textAlign = TextAlign.center,
   })  : assert(style != null || context != null),
-        child = Container(
-          alignment: alignment,
-          padding: padding,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style ?? DefaultTextStyle.of(context!).style,
-          ),
-        ),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        ),
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
         sortValue = sortValue ?? text as T;
 
   /// Autofit width with defaults to suit text data such as left alignment
@@ -349,20 +341,10 @@ class GridCell<T extends Comparable<dynamic>> {
     Alignment alignment = Alignment.centerLeft,
     TextAlign textAlign = TextAlign.left,
   })  : assert(style != null || context != null),
-        child = Container(
-          alignment: alignment,
-          padding: padding,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style ?? DefaultTextStyle.of(context!).style,
-          ),
-        ),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        ),
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
         sortValue = sortValue ?? text as T;
 
   /// Autofit width with defaults to suit numeric data such as right alignment
@@ -375,20 +357,10 @@ class GridCell<T extends Comparable<dynamic>> {
     Alignment alignment = Alignment.centerRight,
     TextAlign textAlign = TextAlign.right,
   })  : assert(style != null || context != null),
-        child = Container(
-          alignment: alignment,
-          padding: padding,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style ?? DefaultTextStyle.of(context!).style,
-          ),
-        ),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        ),
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
         sortValue = sortValue ?? text as T;
 
   /// Must be placed in a [GridColumn.fixedWidth] column
@@ -401,6 +373,19 @@ class GridCell<T extends Comparable<dynamic>> {
   Widget child;
   T sortValue;
   final _AutoFitColumnData? _autoFitColumnData;
+}
+
+Widget _createChild(Alignment alignment, EdgeInsets padding, String text,
+    TextAlign textAlign, TextStyle? style, BuildContext? context) {
+  return Container(
+    alignment: alignment,
+    padding: padding,
+    child: Text(
+      text,
+      textAlign: textAlign,
+      style: style ?? DefaultTextStyle.of(context!).style,
+    ),
+  );
 }
 
 /// Describes the data needed to size a column to the width of the widest cell
@@ -424,6 +409,15 @@ class _AutoFitColumnData {
 
   /// The padding of the text
   final EdgeInsets? padding;
+}
+
+_AutoFitColumnData _createAutoFitColumnData(
+    EdgeInsets padding, String text, TextStyle? style, BuildContext? context) {
+  return _AutoFitColumnData(
+    text: text,
+    style: style ?? DefaultTextStyle.of(context!).style,
+    padding: padding,
+  );
 }
 
 class GridColumn {
@@ -461,22 +455,12 @@ class GridColumn {
     /// Whether to hide this column or not
     this.hide = false,
   })  : assert(context != null || style != null),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        ),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
         autoFitWidth = true,
         width = -1,
-        child = Container(
-          padding: padding,
-          alignment: alignment,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style ?? DefaultTextStyle.of(context!).style,
-          ),
-        );
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context);
 
   GridColumn.autoFitWidthRightAlign({
     /// The text to display
@@ -509,22 +493,12 @@ class GridColumn {
     /// Whether to hide this column or not
     this.hide = false,
   })  : assert(context != null || style != null),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        ),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
         autoFitWidth = true,
         width = -1,
-        child = Container(
-          padding: padding,
-          alignment: alignment,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style ?? DefaultTextStyle.of(context!).style,
-          ),
-        );
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context);
 
   GridColumn.autoFitWidthLeftAlign({
     /// The text to display
@@ -557,23 +531,12 @@ class GridColumn {
     /// Whether to hide this column or not
     this.hide = false,
   })  : assert(context != null || style != null),
-        _autoFitColumnData = _AutoFitColumnData(
-          text: text,
-          style: style ?? DefaultTextStyle.of(context!).style,
-          padding: padding,
-        ),
+        _autoFitColumnData =
+            _createAutoFitColumnData(padding, text, style, context),
         autoFitWidth = true,
         width = -1,
-        child = Container(
-          padding: padding,
-          alignment: alignment,
-          child: Text(
-            text,
-            textAlign: textAlign,
-            style: style ?? DefaultTextStyle.of(context!).style,
-          ),
-        );
-
+        child =
+            _createChild(alignment, padding, text, textAlign, style, context);
   GridColumn.fixedWidth({
     required this.child,
     this.width = 80,
