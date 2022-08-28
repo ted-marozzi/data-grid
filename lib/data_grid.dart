@@ -81,6 +81,7 @@ class _GridState extends State<Grid> {
   late ScrollController rowsControllerX;
   final verticalControllers = SyncScrollControllerGroup();
   late final SyncScrollControllerGroup horizontalControllers;
+  List<int> indices = [];
 
   @override
   void initState() {
@@ -95,6 +96,8 @@ class _GridState extends State<Grid> {
     rowsControllerX = horizontalControllers.addAndGet();
     rowHeaderController = verticalControllers.addAndGet();
     columnHeaderController = horizontalControllers.addAndGet();
+
+    indices = createVirtualColumnIndices();
 
     sortByColumn(widget.defaultSortedColumnIndex, false);
   }
@@ -125,7 +128,6 @@ class _GridState extends State<Grid> {
     final column = widget.columns[columnIndex];
     column.sortingState =
         column.sortingState.getNextState(column.ascendingFirst);
-    resetSortingState(showSortIcon ? columnIndex : null);
     switch (column.sortingState) {
       case SortingState.ascending:
         widget.rows.sort(
@@ -142,24 +144,26 @@ class _GridState extends State<Grid> {
         );
         break;
       case SortingState.none:
-        sortByColumn(0);
-        widget.columns.first.sortingState = SortingState.none;
+        sortByColumn(widget.defaultSortedColumnIndex);
+        widget.columns[indices.first].sortingState = SortingState.none;
         break;
     }
+    resetSortingState(showSortIcon ? columnIndex : null);
+
     setState(() {});
   }
 
   void resortBySortedColumn() {
     for (int i = 0; i < widget.columns.length; i++) {
       switch (widget.columns[i].sortingState) {
-        case SortingState.descending:
+        case SortingState.ascending:
           widget.rows.sort(
             (a, b) => a.children[i].sortValue.compareTo(
               b.children[i].sortValue,
             ),
           );
           return;
-        case SortingState.ascending:
+        case SortingState.descending:
           widget.rows.sort(
             (a, b) => b.children[i].sortValue.compareTo(
               a.children[i].sortValue,
@@ -252,7 +256,7 @@ class _GridState extends State<Grid> {
 
   @override
   Widget build(BuildContext context) {
-    final indices = createVirtualColumnIndices();
+    indices = createVirtualColumnIndices();
     sizeColumns(widget.columns, widget.rows);
     resortBySortedColumn();
 
@@ -311,11 +315,63 @@ class GridCell<T extends Comparable<dynamic>> {
   /// Will sized to the width of the widest cell in the column
   /// efficiently for large data sets
   GridCell.autoFitWidth({
-    required this.sortValue,
     required String text,
+    T? sortValue,
     TextStyle? style,
     BuildContext? context,
-    EdgeInsets? padding = EdgeInsets.zero,
+    EdgeInsets padding = EdgeInsets.zero,
+    Alignment alignment = Alignment.center,
+    TextAlign textAlign = TextAlign.center,
+  })  : assert(style != null || context != null),
+        child = Container(
+          alignment: alignment,
+          padding: padding,
+          child: Text(
+            text,
+            textAlign: textAlign,
+            style: style ?? DefaultTextStyle.of(context!).style,
+          ),
+        ),
+        _autoFitColumnData = _AutoFitColumnData(
+          text: text,
+          style: style ?? DefaultTextStyle.of(context!).style,
+          padding: padding,
+        ),
+        sortValue = sortValue ?? text as T;
+
+  /// Autofit width with defaults to suit text data such as left alignment
+  GridCell.autoFitWidthLeftAlign({
+    required String text,
+    T? sortValue,
+    TextStyle? style,
+    BuildContext? context,
+    EdgeInsets padding = const EdgeInsets.only(left: 12.0),
+    Alignment alignment = Alignment.centerLeft,
+    TextAlign textAlign = TextAlign.left,
+  })  : assert(style != null || context != null),
+        child = Container(
+          alignment: alignment,
+          padding: padding,
+          child: Text(
+            text,
+            textAlign: textAlign,
+            style: style ?? DefaultTextStyle.of(context!).style,
+          ),
+        ),
+        _autoFitColumnData = _AutoFitColumnData(
+          text: text,
+          style: style ?? DefaultTextStyle.of(context!).style,
+          padding: padding,
+        ),
+        sortValue = sortValue ?? text as T;
+
+  /// Autofit width with defaults to suit numeric data such as right alignment
+  GridCell.autoFitWidthRightAlign({
+    required String text,
+    T? sortValue,
+    TextStyle? style,
+    BuildContext? context,
+    EdgeInsets padding = const EdgeInsets.only(right: 12.0),
     Alignment alignment = Alignment.centerRight,
     TextAlign textAlign = TextAlign.right,
   })  : assert(style != null || context != null),
@@ -325,24 +381,25 @@ class GridCell<T extends Comparable<dynamic>> {
           child: Text(
             text,
             textAlign: textAlign,
-            style: style,
+            style: style ?? DefaultTextStyle.of(context!).style,
           ),
         ),
         _autoFitColumnData = _AutoFitColumnData(
           text: text,
           style: style ?? DefaultTextStyle.of(context!).style,
           padding: padding,
-        );
+        ),
+        sortValue = sortValue ?? text as T;
 
   /// Must be placed in a [GridColumn.fixedWidth] column
   /// Will sized to the fixed width of the column
-  const GridCell.fixedWidth({
+  GridCell.fixedWidth({
     required this.sortValue,
     required this.child,
   }) : _autoFitColumnData = null;
 
-  final Widget child;
-  final T sortValue;
+  Widget child;
+  T sortValue;
   final _AutoFitColumnData? _autoFitColumnData;
 }
 
@@ -384,13 +441,61 @@ class GridColumn {
     TextStyle? style,
 
     /// The alignment of the text in the [GridCell]
+    Alignment alignment = Alignment.center,
+
+    /// The text alignment of the text
+    TextAlign textAlign = TextAlign.center,
+
+    /// The padding of the text
+    EdgeInsets padding = EdgeInsets.zero,
+
+    /// Whether to sort ascending first
+    this.ascendingFirst = true,
+
+    /// Whether sort icon should be first or last
+    this.trailingIcon = false,
+
+    /// Whether mainAxisAlignment should be start or end
+    this.mainAxisAlignment = MainAxisAlignment.spaceEvenly,
+
+    /// Whether to hide this column or not
+    this.hide = false,
+  })  : assert(context != null || style != null),
+        _autoFitColumnData = _AutoFitColumnData(
+          text: text,
+          style: style ?? DefaultTextStyle.of(context!).style,
+          padding: padding,
+        ),
+        autoFitWidth = true,
+        width = -1,
+        child = Container(
+          padding: padding,
+          alignment: alignment,
+          child: Text(
+            text,
+            textAlign: textAlign,
+            style: style ?? DefaultTextStyle.of(context!).style,
+          ),
+        );
+
+  GridColumn.autoFitWidthRightAlign({
+    /// The text to display
+    required String text,
+
+    /// Context to calculate the default text style if no text style is provided
+    BuildContext? context,
+
+    /// The text style
+    TextStyle? style,
+
+    /// The alignment of the text in the [GridCell]
     Alignment alignment = Alignment.centerRight,
 
     /// The text alignment of the text
     TextAlign textAlign = TextAlign.right,
 
     /// The padding of the text
-    EdgeInsets? padding,
+    EdgeInsets padding = const EdgeInsets.only(right: 12.0),
 
     /// Whether to sort ascending first
     this.ascendingFirst = false,
@@ -417,7 +522,55 @@ class GridColumn {
           child: Text(
             text,
             textAlign: textAlign,
-            style: style,
+            style: style ?? DefaultTextStyle.of(context!).style,
+          ),
+        );
+
+  GridColumn.autoFitWidthLeftAlign({
+    /// The text to display
+    required String text,
+
+    /// Context to calculate the default text style if no text style is provided
+    BuildContext? context,
+
+    /// The text style
+    TextStyle? style,
+
+    /// The alignment of the text in the [GridCell]
+    Alignment alignment = Alignment.centerLeft,
+
+    /// The text alignment of the text
+    TextAlign textAlign = TextAlign.center,
+
+    /// The padding of the text
+    EdgeInsets padding = const EdgeInsets.only(left: 12.0),
+
+    /// Whether to sort ascending first
+    this.ascendingFirst = true,
+
+    /// Whether sort icon should be first or last
+    this.trailingIcon = true,
+
+    /// Whether mainAxisAlignment should be start or end
+    this.mainAxisAlignment = MainAxisAlignment.start,
+
+    /// Whether to hide this column or not
+    this.hide = false,
+  })  : assert(context != null || style != null),
+        _autoFitColumnData = _AutoFitColumnData(
+          text: text,
+          style: style ?? DefaultTextStyle.of(context!).style,
+          padding: padding,
+        ),
+        autoFitWidth = true,
+        width = -1,
+        child = Container(
+          padding: padding,
+          alignment: alignment,
+          child: Text(
+            text,
+            textAlign: textAlign,
+            style: style ?? DefaultTextStyle.of(context!).style,
           ),
         );
 
