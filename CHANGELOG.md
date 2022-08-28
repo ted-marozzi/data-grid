@@ -1,3 +1,7 @@
+## 0.0.8
+
+- Refactored some code
+
 ## 0.0.7
 
 - Added some convenience constructors and changed some implementation details
