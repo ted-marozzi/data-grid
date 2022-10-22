@@ -26,9 +26,14 @@ class GridRowHeader extends StatelessWidget {
         separatorBuilder: separatorBuilder,
         controller: scrollController,
         itemCount: rows.length,
-        itemBuilder: (context, index) => SizedBox(
-          height: rows[index].height,
-          child: rows[index].children.first.child,
+        itemBuilder: (context, index) => GestureDetector(
+          onLongPress: () {
+            if (rows[index].onLongPress != null) rows[index].onLongPress!();
+          },
+          child: SizedBox(
+            height: rows[index].height,
+            child: rows[index].children.first.child,
+          ),
         ),
       ),
     );
@@ -149,15 +154,22 @@ class GridRows extends StatelessWidget {
             separatorBuilder: horizontalSeparatorBuilder,
             controller: rowsControllerY,
             itemCount: rows.length,
-            itemBuilder: (context, rowIndex) => Row(
-              children: [
-                for (int i = 1; i < indices.length; i++)
-                  SizedBox(
-                    height: rows[rowIndex].height,
-                    width: columnWidths[i],
-                    child: rows[rowIndex].children[indices[i]].child,
-                  ),
-              ],
+            itemBuilder: (context, rowIndex) => GestureDetector(
+              onLongPress: () {
+                if (rows[rowIndex].onLongPress != null) {
+                  rows[rowIndex].onLongPress!();
+                }
+              },
+              child: Row(
+                children: [
+                  for (int i = 1; i < indices.length; i++)
+                    SizedBox(
+                      height: rows[rowIndex].height,
+                      width: columnWidths[i],
+                      child: rows[rowIndex].children[indices[i]].child,
+                    ),
+                ],
+              ),
             ),
           ),
         ),

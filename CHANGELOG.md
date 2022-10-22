@@ -1,3 +1,7 @@
+## 0.0.9
+
+- Added an onLongPress callback to GridRow
+
 ## 0.0.8
 
 - Refactored some code
@@ -13,7 +17,7 @@
 ## 0.0.5
 
 - Changed implementation to use a virtual index array instead of mutating the
- rows and columns to hide a column for performance and usability reasons.
+  rows and columns to hide a column for performance and usability reasons.
 
 ## 0.0.4
 

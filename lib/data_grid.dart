@@ -566,9 +566,13 @@ class GridRow {
   const GridRow({
     required this.children,
     this.height = 40,
+
+    /// [onLongPress] is called when the user holds down anywhere on the grid row
+    this.onLongPress,
   });
   final List<GridCell> children;
   final double height;
+  final VoidCallback? onLongPress;
 }
 
 /// The current sorting state of a column
