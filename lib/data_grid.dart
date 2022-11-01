@@ -261,7 +261,7 @@ class _GridState extends State<Grid> {
     resortBySortedColumn();
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GridColumnHeader(
           physics: widget.physics,
@@ -271,7 +271,11 @@ class _GridState extends State<Grid> {
           indices: indices,
           scrollController: columnHeaderController,
         ),
-        widget.horizontalHeaderSeparatorBuilder(context),
+        SizedBox(
+          width: calculateColumnWidths(indices)
+              .reduce((value, element) => value + element),
+          child: widget.horizontalHeaderSeparatorBuilder(context),
+        ),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
