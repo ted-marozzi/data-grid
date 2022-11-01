@@ -105,13 +105,17 @@ class GridColumnHeaderCell extends StatelessWidget {
       width: column.width,
       child: InkWell(
         onTap: sortColumn,
-        child: Row(
-          mainAxisAlignment: column.mainAxisAlignment,
-          children: [
-            if (!column.trailingIcon) sortIcon,
-            column.child,
-            if (column.trailingIcon) sortIcon,
-          ],
+        // So the inkwell takes the whole space available
+        child: Align(
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: column.mainAxisAlignment,
+            children: [
+              if (!column.trailingIcon) sortIcon,
+              column.child,
+              if (column.trailingIcon) sortIcon,
+            ],
+          ),
         ),
       ),
     );
