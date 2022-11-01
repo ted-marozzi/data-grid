@@ -29,7 +29,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  data_grid: ^0.0.1
+  data_grid:
+    path: ../
 
 dev_dependencies:
   flutter_test:
