@@ -27,9 +27,8 @@ class GridRowHeader extends StatelessWidget {
         controller: scrollController,
         itemCount: rows.length,
         itemBuilder: (context, index) => GestureDetector(
-          onLongPress: () {
-            if (rows[index].onLongPress != null) rows[index].onLongPress!();
-          },
+          onTap: rows[index].onTap?.call,
+          onLongPress: rows[index].onLongPress?.call,
           child: SizedBox(
             height: rows[index].height,
             child: rows[index].children.first.child,
@@ -159,11 +158,8 @@ class GridRows extends StatelessWidget {
             controller: rowsControllerY,
             itemCount: rows.length,
             itemBuilder: (context, rowIndex) => GestureDetector(
-              onLongPress: () {
-                if (rows[rowIndex].onLongPress != null) {
-                  rows[rowIndex].onLongPress!();
-                }
-              },
+              onTap: rows[rowIndex].onTap?.call,
+              onLongPress: rows[rowIndex].onLongPress?.call,
               child: Row(
                 children: [
                   for (int i = 1; i < indices.length; i++)

@@ -571,11 +571,15 @@ class GridRow {
     required this.children,
     this.height = 40,
 
+    /// [onTap] is called when the user tap anywhere on the grid row
+    this.onTap,
+
     /// [onLongPress] is called when the user holds down anywhere on the grid row
     this.onLongPress,
   });
   final List<GridCell> children;
   final double height;
+  final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 }
 
