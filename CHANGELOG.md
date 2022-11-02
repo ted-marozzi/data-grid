@@ -1,3 +1,10 @@
+## 0.1.0
+
+- fix: make example compile & run
+- fix: horizontalHeaderSeparatorBuilder same width as rows
+- feat: GridRow add optional onTap
+- fix: Invoke callbacks on complete row, not just content so onTap/onLongPress will be invoked even on grid row whitespace
+
 ## 0.0.9
 
 - Added an onLongPress callback to GridRow
