@@ -27,6 +27,9 @@ class GridRowHeader extends StatelessWidget {
         controller: scrollController,
         itemCount: rows.length,
         itemBuilder: (context, index) => GestureDetector(
+          // Instead of limiting the click area to child's clickable area,
+          // use complete area of widget
+          behavior: HitTestBehavior.opaque,
           onTap: rows[index].onTap?.call,
           onLongPress: rows[index].onLongPress?.call,
           child: SizedBox(
@@ -158,6 +161,9 @@ class GridRows extends StatelessWidget {
             controller: rowsControllerY,
             itemCount: rows.length,
             itemBuilder: (context, rowIndex) => GestureDetector(
+              // Instead of limiting the click area to child's clickable area,
+              // use complete area of widget
+              behavior: HitTestBehavior.opaque,
               onTap: rows[rowIndex].onTap?.call,
               onLongPress: rows[rowIndex].onLongPress?.call,
               child: Row(
