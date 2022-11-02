@@ -53,11 +53,15 @@ class GridColumnHeader extends StatelessWidget {
     required this.scrollController,
     required this.physics,
     required this.indices,
+    required this.sortingIconSettings,
   }) : super(key: key);
+
   final List<GridColumn> columns;
   final ScrollController scrollController;
   final ScrollPhysics? physics;
   final List<int> indices;
+  final SortingIconSettings sortingIconSettings;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -68,6 +72,7 @@ class GridColumnHeader extends StatelessWidget {
           GridColumnHeaderCell(
             sortColumn: () => sortByColumn(indices.first),
             column: columns[indices.first],
+            sortingIconSettings: sortingIconSettings,
           ),
           Expanded(
             child: ListView.builder(
@@ -80,6 +85,7 @@ class GridColumnHeader extends StatelessWidget {
                   return GridColumnHeaderCell(
                     sortColumn: () => sortByColumn(index),
                     column: columns[index],
+                    sortingIconSettings: sortingIconSettings,
                   );
                 }),
           ),
@@ -94,15 +100,20 @@ class GridColumnHeaderCell extends StatelessWidget {
     Key? key,
     required this.sortColumn,
     required this.column,
+    required this.sortingIconSettings,
   }) : super(key: key);
+
   final void Function() sortColumn;
   final GridColumn column;
+  final SortingIconSettings sortingIconSettings;
+
   @override
   Widget build(BuildContext context) {
     final Widget sortIcon = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: column.sortingState.getIcon(),
+      padding: sortingIconSettings.padding,
+      child: column.sortingState.getIcon(sortingIconSettings),
     );
+
     return SizedBox(
       width: column.width,
       child: InkWell(

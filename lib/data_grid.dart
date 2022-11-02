@@ -38,6 +38,9 @@ class Grid extends StatefulWidget {
     /// Horizontal separator for the grid body
     /// e.g (context, index) => const Divider()
     Widget Function(BuildContext, int)? horizontalSeparatorBuilder,
+
+    /// Settings for sorting icons
+    this.sortingIconSettings = const SortingIconSettings(),
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
         ),
@@ -70,6 +73,10 @@ class Grid extends StatefulWidget {
 
   /// Scroll Physics for the [Grid]
   final ScrollPhysics? physics;
+
+  /// Settings for sorting icons
+  final SortingIconSettings sortingIconSettings;
+
   @override
   State<Grid> createState() => _GridState();
 }
@@ -207,8 +214,9 @@ class _GridState extends State<Grid> {
   ) {
     assert(column._autoFitColumnData != null);
 
-    const sortIconWidth = 20;
-    const sortIconPadding = 8;
+    final sortIconWidth = widget.sortingIconSettings.size;
+    final sortIconPadding = widget.sortingIconSettings.padding.horizontal;
+
     double width = _textWidth(
           column._autoFitColumnData!.text,
           column._autoFitColumnData?.style,
@@ -270,6 +278,7 @@ class _GridState extends State<Grid> {
           columns: widget.columns,
           indices: indices,
           scrollController: columnHeaderController,
+          sortingIconSettings: widget.sortingIconSettings,
         ),
         SizedBox(
           width: calculateColumnWidths(indices)
@@ -590,20 +599,25 @@ enum SortingState {
   none;
 
   /// The icon to display for the current sorting state
-  Widget getIcon() {
+  Widget getIcon(SortingIconSettings settings) {
     switch (this) {
       case SortingState.ascending:
-        return const Icon(
-          Icons.arrow_upward_rounded,
-          size: 20,
+        return Icon(
+          settings.ascending,
+          size: settings.size,
+          color: settings.color,
         );
       case SortingState.descending:
-        return const Icon(
-          Icons.arrow_downward_rounded,
-          size: 20,
+        return Icon(
+          settings.descending,
+          size: settings.size,
+          color: settings.color,
         );
       case SortingState.none:
-        return const SizedBox(width: 20, height: 20);
+        return SizedBox(
+          width: settings.size,
+          height: settings.size,
+        );
     }
   }
 
@@ -628,4 +642,41 @@ enum SortingState {
         return SortingState.descending;
     }
   }
+}
+
+class SortingIconSettings {
+  final IconData ascending;
+  final IconData descending;
+  final double size;
+  final Color? color;
+  final EdgeInsets padding;
+
+  const SortingIconSettings({
+    this.ascending = Icons.arrow_upward_rounded,
+    this.descending = Icons.arrow_downward_rounded,
+    this.size = 20,
+    this.color,
+    this.padding = const EdgeInsets.symmetric(horizontal: 4.0),
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is SortingIconSettings &&
+        other.ascending == ascending &&
+        other.descending == descending &&
+        other.size == size &&
+        other.color == color &&
+        other.padding == padding;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        ascending,
+        descending,
+        size,
+        color,
+        padding,
+      );
 }
