@@ -46,8 +46,6 @@ class GridRowHeader extends StatelessWidget {
 }
 
 class GridColumnHeader extends StatelessWidget {
-  final double columnsHeaderHeight;
-  final void Function(int) sortByColumn;
   const GridColumnHeader({
     Key? key,
     required this.columnsHeaderHeight,
@@ -59,6 +57,8 @@ class GridColumnHeader extends StatelessWidget {
     required this.sortingIconSettings,
   }) : super(key: key);
 
+  final double columnsHeaderHeight;
+  final void Function(int) sortByColumn;
   final List<GridColumn> columns;
   final ScrollController scrollController;
   final ScrollPhysics? physics;
@@ -73,7 +73,9 @@ class GridColumnHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           GridColumnHeaderCell(
-            sortColumn: () => sortByColumn(indices.first),
+            sortColumn: columns[indices.first].isSortable
+                ? () => sortByColumn(indices.first)
+                : null,
             column: columns[indices.first],
             sortingIconSettings: sortingIconSettings,
           ),
@@ -86,7 +88,9 @@ class GridColumnHeader extends StatelessWidget {
                 itemBuilder: (context, columnIndex) {
                   int index = indices[columnIndex + 1];
                   return GridColumnHeaderCell(
-                    sortColumn: () => sortByColumn(index),
+                    sortColumn: columns[index].isSortable
+                        ? () => sortByColumn(index)
+                        : null,
                     column: columns[index],
                     sortingIconSettings: sortingIconSettings,
                   );
@@ -106,34 +110,40 @@ class GridColumnHeaderCell extends StatelessWidget {
     required this.sortingIconSettings,
   }) : super(key: key);
 
-  final void Function() sortColumn;
+  final VoidCallback? sortColumn;
   final GridColumn column;
   final SortingIconSettings sortingIconSettings;
 
   @override
   Widget build(BuildContext context) {
+    assert(column.isSortable == (sortColumn != null));
+
     final Widget sortIcon = Padding(
       padding: sortingIconSettings.padding,
       child: column.sortingState.getIcon(sortingIconSettings),
     );
-
-    return SizedBox(
-      width: column.width,
-      child: InkWell(
+    Widget content = Row(
+      mainAxisAlignment: column.mainAxisAlignment,
+      children: [
+        if (sortColumn != null && !column.trailingIcon) sortIcon,
+        column.child,
+        if (sortColumn != null && column.trailingIcon) sortIcon,
+      ],
+    );
+    if (sortColumn != null) {
+      content = InkWell(
         onTap: sortColumn,
         // So the inkwell takes the whole space available
         child: Align(
           alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: column.mainAxisAlignment,
-            children: [
-              if (!column.trailingIcon) sortIcon,
-              column.child,
-              if (column.trailingIcon) sortIcon,
-            ],
-          ),
+          child: content,
         ),
-      ),
+      );
+    }
+
+    return SizedBox(
+      width: column.width,
+      child: content,
     );
   }
 }
