@@ -47,6 +47,12 @@ class Grid extends StatefulWidget {
 
     /// An optional decoration when a row is highlighted
     this.rowHighlightDecoration,
+
+    /// The current selected row index
+    this.selectedRowIndex,
+
+    /// An optional decoration when a row is selected
+    this.rowSelectedDecoration,
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
         ),
@@ -88,6 +94,12 @@ class Grid extends StatefulWidget {
 
   /// An optional decoration when a row is highlighted
   final BoxDecoration? rowHighlightDecoration;
+
+  /// The current selected row index
+  final int? selectedRowIndex;
+
+  /// An optional decoration when a row is selected
+  final BoxDecoration? rowSelectedDecoration;
 
   @override
   State<Grid> createState() => _GridState();
@@ -319,6 +331,7 @@ class _GridState extends State<Grid> {
                 rowsControllerX: rowsControllerX,
                 showHeader: !widget.hasRowHeader,
                 highlightDecoration: widget.rowHighlightDecoration,
+                selectedRowIndex: widget.selectedRowIndex,
               ),
             ],
           ),

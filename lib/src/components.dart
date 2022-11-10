@@ -151,6 +151,8 @@ class GridRows extends StatelessWidget {
     required this.indices,
     required this.showHeader,
     this.highlightDecoration,
+    this.selectedRowIndex,
+    this.selectedDecoration,
   }) : super(key: key);
 
   final List<GridRow> rows;
@@ -161,6 +163,8 @@ class GridRows extends StatelessWidget {
   final List<int> indices;
   final bool showHeader;
   final BoxDecoration? highlightDecoration;
+  final int? selectedRowIndex;
+  final BoxDecoration? selectedDecoration;
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +190,8 @@ class GridRows extends StatelessWidget {
               indices: indices,
               showHeader: showHeader,
               highlightDecoration: highlightDecoration,
+              isSelected: selectedRowIndex == rowIndex,
+              selectedDecoration: selectedDecoration,
             ),
           ),
         ),
@@ -201,6 +207,8 @@ class _GridRowItem extends StatefulWidget {
     required this.indices,
     required this.showHeader,
     this.highlightDecoration,
+    this.isSelected = false,
+    this.selectedDecoration,
     Key? key,
   }) : super(key: key);
 
@@ -209,6 +217,8 @@ class _GridRowItem extends StatefulWidget {
   final List<int> indices;
   final bool showHeader;
   final BoxDecoration? highlightDecoration;
+  final bool isSelected;
+  final BoxDecoration? selectedDecoration;
 
   @override
   State<_GridRowItem> createState() => _GridRowItemState();
@@ -230,12 +240,7 @@ class _GridRowItemState extends State<_GridRowItem> {
         onEnter: (_) => setState(() => _isHovering = true),
         onExit: (_) => setState(() => _isHovering = false),
         child: Container(
-          decoration: _isHovering
-              ? widget.highlightDecoration ??
-                  BoxDecoration(
-                    color: Theme.of(context).splashColor,
-                  )
-              : null,
+          decoration: _getDecoration(),
           child: Row(
             children: [
               for (int i = widget.showHeader ? 0 : 1;
@@ -259,5 +264,21 @@ class _GridRowItemState extends State<_GridRowItem> {
         ),
       ),
     );
+  }
+
+  BoxDecoration? _getDecoration() {
+    if (widget.isSelected) {
+      return widget.selectedDecoration ??
+          BoxDecoration(
+            color: Theme.of(context).primaryColor,
+          );
+    } else if (_isHovering) {
+      return widget.highlightDecoration ??
+          BoxDecoration(
+            color: Theme.of(context).splashColor,
+          );
+    } else {
+      return null;
+    }
   }
 }
