@@ -11,6 +11,7 @@ class GridRowHeader extends StatelessWidget {
     required this.scrollController,
     required this.physics,
   }) : super(key: key);
+
   final double width;
   final Widget Function(BuildContext, int) separatorBuilder;
   final ScrollController scrollController;
@@ -148,13 +149,18 @@ class GridRows extends StatelessWidget {
     required this.rowsControllerY,
     required this.physics,
     required this.indices,
+    required this.showHeader,
+    this.highlightDecoration,
   }) : super(key: key);
+
   final List<GridRow> rows;
   final List<double> columnWidths;
   final Widget Function(BuildContext, int) horizontalSeparatorBuilder;
   final ScrollController rowsControllerX, rowsControllerY;
   final ScrollPhysics? physics;
   final List<int> indices;
+  final bool showHeader;
+  final BoxDecoration? highlightDecoration;
 
   @override
   Widget build(BuildContext context) {
@@ -165,8 +171,8 @@ class GridRows extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: SizedBox(
           width: columnWidths.fold<double>(
-            // remove the header row width
-            -columnWidths.first,
+            // when header isn't shown, remove the header row width
+            showHeader ? 0 : -columnWidths.first,
             (previousValue, width) => previousValue + width,
           ),
           child: ListView.separated(
@@ -174,31 +180,81 @@ class GridRows extends StatelessWidget {
             separatorBuilder: horizontalSeparatorBuilder,
             controller: rowsControllerY,
             itemCount: rows.length,
-            itemBuilder: (context, rowIndex) => GestureDetector(
-              // Instead of limiting the click area to child's clickable area,
-              // use complete area of widget
-              behavior: HitTestBehavior.translucent,
-              onTap: rows[rowIndex].onTap?.call,
-              onLongPress: rows[rowIndex].onLongPress?.call,
-              child: Row(
-                children: [
-                  for (int i = 1; i < indices.length; i++)
-                    GestureDetector(
-                      // As small as possible so only content is tapped
-                      onTap: () {
-                        rows[rowIndex].children[indices[i]].onTap?.call();
-                        // This detector absorbs onTap so also invoke GridRow onTap
-                        rows[rowIndex].onTap?.call();
-                      },
-                      child: SizedBox(
-                        height: rows[rowIndex].height,
-                        width: columnWidths[i],
-                        child: rows[rowIndex].children[indices[i]].child,
-                      ),
-                    ),
-                ],
-              ),
+            itemBuilder: (context, rowIndex) => _GridRowItem(
+              item: rows[rowIndex],
+              columnWidths: columnWidths,
+              indices: indices,
+              showHeader: showHeader,
+              highlightDecoration: highlightDecoration,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GridRowItem extends StatefulWidget {
+  const _GridRowItem({
+    required this.item,
+    required this.columnWidths,
+    required this.indices,
+    required this.showHeader,
+    this.highlightDecoration,
+    Key? key,
+  }) : super(key: key);
+
+  final GridRow item;
+  final List<double> columnWidths;
+  final List<int> indices;
+  final bool showHeader;
+  final BoxDecoration? highlightDecoration;
+
+  @override
+  State<_GridRowItem> createState() => _GridRowItemState();
+}
+
+class _GridRowItemState extends State<_GridRowItem> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      // Instead of limiting the click area to child's clickable area,
+      // use complete area of widget
+      behavior: HitTestBehavior.translucent,
+      onTap: widget.item.onTap?.call,
+      onLongPress: widget.item.onLongPress?.call,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovering = true),
+        onExit: (_) => setState(() => _isHovering = false),
+        child: Container(
+          decoration: _isHovering
+              ? widget.highlightDecoration ??
+                  BoxDecoration(
+                    color: Theme.of(context).splashColor,
+                  )
+              : null,
+          child: Row(
+            children: [
+              for (int i = widget.showHeader ? 0 : 1;
+                  i < widget.indices.length;
+                  i++)
+                GestureDetector(
+                  // As small as possible so only content is tapped
+                  onTap: () {
+                    widget.item.children[widget.indices[i]].onTap?.call();
+                    // This detector absorbs onTap so also invoke GridRow onTap
+                    widget.item.onTap?.call();
+                  },
+                  child: SizedBox(
+                    height: widget.item.height,
+                    width: widget.columnWidths[i],
+                    child: widget.item.children[widget.indices[i]].child,
+                  ),
+                ),
+            ],
           ),
         ),
       ),

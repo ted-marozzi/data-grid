@@ -41,6 +41,12 @@ class Grid extends StatefulWidget {
 
     /// Settings for sorting icons
     this.sortingIconSettings = const SortingIconSettings(),
+
+    /// Whether each row has a header (which contents can scroll behind)
+    this.hasRowHeader = true,
+
+    /// An optional decoration when a row is highlighted
+    this.rowHighlightDecoration,
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
         ),
@@ -76,6 +82,12 @@ class Grid extends StatefulWidget {
 
   /// Settings for sorting icons
   final SortingIconSettings sortingIconSettings;
+
+  /// Whether each row has a header (which contents can scroll behind)
+  final bool hasRowHeader;
+
+  /// An optional decoration when a row is highlighted
+  final BoxDecoration? rowHighlightDecoration;
 
   @override
   State<Grid> createState() => _GridState();
@@ -289,13 +301,14 @@ class _GridState extends State<Grid> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GridRowHeader(
-                physics: widget.physics,
-                rows: widget.rows,
-                width: widget.columns.first.width,
-                scrollController: rowHeaderController,
-                separatorBuilder: widget.horizontalSeparatorBuilder,
-              ),
+              if (widget.hasRowHeader)
+                GridRowHeader(
+                  physics: widget.physics,
+                  rows: widget.rows,
+                  width: widget.columns.first.width,
+                  scrollController: rowHeaderController,
+                  separatorBuilder: widget.horizontalSeparatorBuilder,
+                ),
               GridRows(
                 indices: indices,
                 physics: widget.physics,
@@ -304,6 +317,8 @@ class _GridState extends State<Grid> {
                 horizontalSeparatorBuilder: widget.horizontalSeparatorBuilder,
                 rowsControllerY: rowsControllerY,
                 rowsControllerX: rowsControllerX,
+                showHeader: !widget.hasRowHeader,
+                highlightDecoration: widget.rowHighlightDecoration,
               ),
             ],
           ),
