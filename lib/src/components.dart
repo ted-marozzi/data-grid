@@ -267,18 +267,19 @@ class _GridRowItemState extends State<_GridRowItem> {
   }
 
   BoxDecoration? _getDecoration() {
-    if (widget.isSelected) {
-      return widget.selectedDecoration ??
-          BoxDecoration(
-            color: Theme.of(context).primaryColor,
-          );
-    } else if (_isHovering) {
-      return widget.highlightDecoration ??
-          BoxDecoration(
-            color: Theme.of(context).splashColor,
-          );
-    } else {
-      return null;
+    if (widget.showHeader) {
+      if (widget.isSelected) {
+        return widget.selectedDecoration ??
+            BoxDecoration(
+              color: Theme.of(context).primaryColor,
+            );
+      } else if (_isHovering) {
+        return widget.highlightDecoration ??
+            BoxDecoration(
+              color: Theme.of(context).splashColor,
+            );
+      }
     }
+    return null;
   }
 }

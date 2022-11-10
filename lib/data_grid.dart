@@ -2,9 +2,12 @@ library data_grid;
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:data_grid/src/components.dart';
+import 'package:data_grid/src/data_grid_theme.dart';
+import 'package:flutter/material.dart';
 import 'package:sync_scroll_controller/sync_scroll_controller.dart';
+
+export 'package:data_grid/src/data_grid_theme.dart';
 
 /// The [Grid]
 class Grid extends StatefulWidget {
@@ -40,19 +43,13 @@ class Grid extends StatefulWidget {
     Widget Function(BuildContext, int)? horizontalSeparatorBuilder,
 
     /// Settings for sorting icons
-    this.sortingIconSettings = const SortingIconSettings(),
+    this.dataGridThemeData = const DataGridThemeData(),
 
     /// Whether each row has a header (which contents can scroll behind)
     this.hasRowHeader = true,
 
-    /// An optional decoration when a row is highlighted
-    this.rowHighlightDecoration,
-
     /// The current selected row index
     this.selectedRowIndex,
-
-    /// An optional decoration when a row is selected
-    this.rowSelectedDecoration,
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
         ),
@@ -87,19 +84,13 @@ class Grid extends StatefulWidget {
   final ScrollPhysics? physics;
 
   /// Settings for sorting icons
-  final SortingIconSettings sortingIconSettings;
+  final DataGridThemeData dataGridThemeData;
 
   /// Whether each row has a header (which contents can scroll behind)
   final bool hasRowHeader;
 
-  /// An optional decoration when a row is highlighted
-  final BoxDecoration? rowHighlightDecoration;
-
   /// The current selected row index
   final int? selectedRowIndex;
-
-  /// An optional decoration when a row is selected
-  final BoxDecoration? rowSelectedDecoration;
 
   @override
   State<Grid> createState() => _GridState();
@@ -238,8 +229,9 @@ class _GridState extends State<Grid> {
   ) {
     assert(column._autoFitColumnData != null);
 
-    final sortIconWidth = widget.sortingIconSettings.size;
-    final sortIconPadding = widget.sortingIconSettings.padding.horizontal;
+    final sortIconWidth = widget.dataGridThemeData.sortingIconSettings.size;
+    final sortIconPadding =
+        widget.dataGridThemeData.sortingIconSettings.padding.horizontal;
 
     double width = _textWidth(
           column._autoFitColumnData!.text,
@@ -302,7 +294,7 @@ class _GridState extends State<Grid> {
           columns: widget.columns,
           indices: indices,
           scrollController: columnHeaderController,
-          sortingIconSettings: widget.sortingIconSettings,
+          sortingIconSettings: widget.dataGridThemeData.sortingIconSettings,
         ),
         SizedBox(
           width: calculateColumnWidths(indices)
@@ -330,8 +322,11 @@ class _GridState extends State<Grid> {
                 rowsControllerY: rowsControllerY,
                 rowsControllerX: rowsControllerX,
                 showHeader: !widget.hasRowHeader,
-                highlightDecoration: widget.rowHighlightDecoration,
+                highlightDecoration:
+                    widget.dataGridThemeData.rowHighlightDecoration,
                 selectedRowIndex: widget.selectedRowIndex,
+                selectedDecoration:
+                    widget.dataGridThemeData.rowSelectedDecoration,
               ),
             ],
           ),
@@ -675,41 +670,4 @@ enum SortingState {
         return SortingState.descending;
     }
   }
-}
-
-class SortingIconSettings {
-  final IconData ascending;
-  final IconData descending;
-  final double size;
-  final Color? color;
-  final EdgeInsets padding;
-
-  const SortingIconSettings({
-    this.ascending = Icons.arrow_upward_rounded,
-    this.descending = Icons.arrow_downward_rounded,
-    this.size = 20,
-    this.color,
-    this.padding = const EdgeInsets.symmetric(horizontal: 4.0),
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is SortingIconSettings &&
-        other.ascending == ascending &&
-        other.descending == descending &&
-        other.size == size &&
-        other.color == color &&
-        other.padding == padding;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        ascending,
-        descending,
-        size,
-        color,
-        padding,
-      );
 }
