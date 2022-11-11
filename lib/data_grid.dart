@@ -337,6 +337,7 @@ class GridCell<T extends Comparable<dynamic>> {
     EdgeInsets padding = EdgeInsets.zero,
     Alignment alignment = Alignment.center,
     TextAlign textAlign = TextAlign.center,
+    this.onTap,
   })  : assert(style != null || context != null),
         child =
             _createChild(alignment, padding, text, textAlign, style, context),
@@ -353,6 +354,7 @@ class GridCell<T extends Comparable<dynamic>> {
     EdgeInsets padding = const EdgeInsets.only(left: 12.0),
     Alignment alignment = Alignment.centerLeft,
     TextAlign textAlign = TextAlign.left,
+    this.onTap,
   })  : assert(style != null || context != null),
         child =
             _createChild(alignment, padding, text, textAlign, style, context),
@@ -369,6 +371,7 @@ class GridCell<T extends Comparable<dynamic>> {
     EdgeInsets padding = const EdgeInsets.only(right: 12.0),
     Alignment alignment = Alignment.centerRight,
     TextAlign textAlign = TextAlign.right,
+    this.onTap,
   })  : assert(style != null || context != null),
         child =
             _createChild(alignment, padding, text, textAlign, style, context),
@@ -381,11 +384,13 @@ class GridCell<T extends Comparable<dynamic>> {
   GridCell.fixedWidth({
     required this.sortValue,
     required this.child,
+    this.onTap,
   }) : _autoFitColumnData = null;
 
   Widget child;
   T sortValue;
   final _AutoFitColumnData? _autoFitColumnData;
+  final VoidCallback? onTap;
 }
 
 Widget _createChild(Alignment alignment, EdgeInsets padding, String text,
