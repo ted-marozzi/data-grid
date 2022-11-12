@@ -48,7 +48,7 @@ class Grid extends StatefulWidget {
     /// Whether each row has a header (which contents can scroll behind)
     this.hasRowHeader = true,
 
-    /// The current selected row index
+    /// The current selected row index (only considered when [hasRowHeader] is `false`)
     this.selectedRowIndex,
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
@@ -89,7 +89,7 @@ class Grid extends StatefulWidget {
   /// Whether each row has a header (which contents can scroll behind)
   final bool hasRowHeader;
 
-  /// The current selected row index
+  /// The current selected row index (only considered when [hasRowHeader] is `false`)
   final int? selectedRowIndex;
 
   @override

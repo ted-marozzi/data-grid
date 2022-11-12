@@ -42,5 +42,11 @@ class MyWidget extends StatelessWidget {
     );
   }
 }
-
 ```
+
+### Frozen Headers
+
+By default column headers are frozen, this means that row content will scroll underneath them.
+
+By default row headers are frozen, however this can be disabled using `hasRowHeader` boolean. When disabled, all the row offers additional functionality such as selection and hover states. Selection and hover states may be considered in the future for rows containing frozen headers.
+
