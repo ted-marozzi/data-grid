@@ -44,9 +44,13 @@ class MyWidget extends StatelessWidget {
 }
 ```
 
+### Selectable Rows, Highlighted Rows
+
+On Desktop and web, rows are by default highlighted when the mouse cursor is hovered over them. Rows can be selected by passing `selectedRowIndex`. Highlighted and selected styles can be configured in `DataGridThemeData`.
+
 ### Frozen Headers
 
 By default column headers are frozen, this means that row content will scroll underneath them.
 
-By default row headers are frozen, however this can be disabled using `hasRowHeader` boolean. When disabled, all the row offers additional functionality such as selection and hover states. Selection and hover states may be considered in the future for rows containing frozen headers.
+By default row headers are frozen, however this can be disabled using `hasRowHeader` boolean.
 

@@ -48,7 +48,7 @@ class Grid extends StatefulWidget {
     /// Whether each row has a header (which contents can scroll behind)
     this.hasRowHeader = true,
 
-    /// The current selected row index (only considered when [hasRowHeader] is `false`)
+    /// The current selected row index
     this.selectedRowIndex,
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
@@ -89,7 +89,7 @@ class Grid extends StatefulWidget {
   /// Whether each row has a header (which contents can scroll behind)
   final bool hasRowHeader;
 
-  /// The current selected row index (only considered when [hasRowHeader] is `false`)
+  /// The current selected row index
   final int? selectedRowIndex;
 
   @override
@@ -104,6 +104,11 @@ class _GridState extends State<Grid> {
   final verticalControllers = SyncScrollControllerGroup();
   late final SyncScrollControllerGroup horizontalControllers;
   List<int> indices = [];
+  // a row is hovered if either the header is hovered or remaining rows are hovered
+  int? _hoveringRowIndexHeader;
+  int? _hoveringRowIndexRows;
+  int? get _hoveringRowIndex =>
+      _hoveringRowIndexHeader ?? _hoveringRowIndexRows;
 
   @override
   void initState() {
@@ -312,6 +317,15 @@ class _GridState extends State<Grid> {
                   width: widget.columns.first.width,
                   scrollController: rowHeaderController,
                   separatorBuilder: widget.horizontalSeparatorBuilder,
+                  hoveringRowIndex: _hoveringRowIndex,
+                  onHoverIndex: (index) => setState(
+                    () => _hoveringRowIndexHeader = index,
+                  ),
+                  highlightDecoration:
+                      widget.dataGridThemeData.rowHighlightDecoration,
+                  selectedRowIndex: widget.selectedRowIndex,
+                  selectedDecoration:
+                      widget.dataGridThemeData.rowSelectedDecoration,
                 ),
               GridRows(
                 indices: indices,
@@ -322,6 +336,10 @@ class _GridState extends State<Grid> {
                 rowsControllerY: rowsControllerY,
                 rowsControllerX: rowsControllerX,
                 showHeader: !widget.hasRowHeader,
+                hoveringRowIndex: _hoveringRowIndex,
+                onHoverIndex: (index) => setState(
+                  () => _hoveringRowIndexRows = index,
+                ),
                 highlightDecoration:
                     widget.dataGridThemeData.rowHighlightDecoration,
                 selectedRowIndex: widget.selectedRowIndex,

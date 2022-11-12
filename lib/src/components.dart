@@ -10,6 +10,11 @@ class GridRowHeader extends StatelessWidget {
     required this.rows,
     required this.scrollController,
     required this.physics,
+    required this.onHoverIndex,
+    this.hoveringRowIndex,
+    this.highlightDecoration,
+    this.selectedRowIndex,
+    this.selectedDecoration,
   }) : super(key: key);
 
   final double width;
@@ -17,6 +22,11 @@ class GridRowHeader extends StatelessWidget {
   final ScrollController scrollController;
   final List<GridRow> rows;
   final ScrollPhysics? physics;
+  final void Function(int?) onHoverIndex;
+  final int? hoveringRowIndex;
+  final BoxDecoration? highlightDecoration;
+  final int? selectedRowIndex;
+  final BoxDecoration? selectedDecoration;
 
   @override
   Widget build(BuildContext context) {
@@ -27,22 +37,102 @@ class GridRowHeader extends StatelessWidget {
         separatorBuilder: separatorBuilder,
         controller: scrollController,
         itemCount: rows.length,
-        itemBuilder: (context, index) => GestureDetector(
-          // Instead of limiting the click area to child's clickable area,
-          // use complete area of widget
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            rows[index].onTap?.call();
-            rows[index].children.first.onTap?.call();
-          },
-          onLongPress: rows[index].onLongPress?.call,
-          child: SizedBox(
-            height: rows[index].height,
-            child: rows[index].children.first.child,
-          ),
+        itemBuilder: (context, index) => _GridRowHeaderItem(
+          item: rows[index],
+          isHovering: hoveringRowIndex == index,
+          onHover: (isHovering) => onHoverIndex(isHovering ? index : null),
+          highlightDecoration: highlightDecoration,
+          isSelected: selectedRowIndex == index,
+          selectedDecoration: selectedDecoration,
         ),
       ),
     );
+  }
+}
+
+class _GridRowHeaderItem extends StatefulWidget {
+  const _GridRowHeaderItem({
+    Key? key,
+    required this.item,
+    required this.onHover,
+    this.isHovering = false,
+    this.highlightDecoration,
+    this.isSelected = false,
+    this.selectedDecoration,
+  }) : super(key: key);
+
+  final GridRow item;
+  final void Function(bool) onHover;
+  final bool isHovering;
+  final BoxDecoration? highlightDecoration;
+  final bool isSelected;
+  final BoxDecoration? selectedDecoration;
+
+  @override
+  State<_GridRowHeaderItem> createState() => _GridRowHeaderItemState();
+}
+
+class _GridRowHeaderItemState extends State<_GridRowHeaderItem> {
+  var _isHovering = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _isHovering = widget.isHovering;
+  }
+
+  @override
+  void didUpdateWidget(covariant _GridRowHeaderItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    _isHovering = widget.isHovering;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      // Instead of limiting the click area to child's clickable area,
+      // use complete area of widget
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        widget.item.onTap?.call();
+        widget.item.children.first.onTap?.call();
+      },
+      onLongPress: widget.item.onLongPress?.call,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) {
+          widget.onHover(true);
+          setState(() => _isHovering = true);
+        },
+        onExit: (_) {
+          widget.onHover(false);
+          setState(() => _isHovering = false);
+        },
+        child: Container(
+          decoration: _getDecoration(),
+          height: widget.item.height,
+          child: widget.item.children.first.child,
+        ),
+      ),
+    );
+  }
+
+  BoxDecoration? _getDecoration() {
+    if (widget.isSelected) {
+      return widget.selectedDecoration ??
+          BoxDecoration(
+            color: Theme.of(context).primaryColor,
+          );
+    } else if (_isHovering) {
+      return widget.highlightDecoration ??
+          BoxDecoration(
+            color: Theme.of(context).splashColor,
+          );
+    }
+
+    return null;
   }
 }
 
@@ -150,6 +240,8 @@ class GridRows extends StatelessWidget {
     required this.physics,
     required this.indices,
     required this.showHeader,
+    required this.onHoverIndex,
+    this.hoveringRowIndex,
     this.highlightDecoration,
     this.selectedRowIndex,
     this.selectedDecoration,
@@ -162,6 +254,8 @@ class GridRows extends StatelessWidget {
   final ScrollPhysics? physics;
   final List<int> indices;
   final bool showHeader;
+  final void Function(int?) onHoverIndex;
+  final int? hoveringRowIndex;
   final BoxDecoration? highlightDecoration;
   final int? selectedRowIndex;
   final BoxDecoration? selectedDecoration;
@@ -189,6 +283,9 @@ class GridRows extends StatelessWidget {
               columnWidths: columnWidths,
               indices: indices,
               showHeader: showHeader,
+              isHovering: hoveringRowIndex == rowIndex,
+              onHover: (isHovering) =>
+                  onHoverIndex(isHovering ? rowIndex : null),
               highlightDecoration: highlightDecoration,
               isSelected: selectedRowIndex == rowIndex,
               selectedDecoration: selectedDecoration,
@@ -206,6 +303,8 @@ class _GridRowItem extends StatefulWidget {
     required this.columnWidths,
     required this.indices,
     required this.showHeader,
+    required this.onHover,
+    this.isHovering = false,
     this.highlightDecoration,
     this.isSelected = false,
     this.selectedDecoration,
@@ -216,6 +315,8 @@ class _GridRowItem extends StatefulWidget {
   final List<double> columnWidths;
   final List<int> indices;
   final bool showHeader;
+  final void Function(bool) onHover;
+  final bool isHovering;
   final BoxDecoration? highlightDecoration;
   final bool isSelected;
   final BoxDecoration? selectedDecoration;
@@ -228,6 +329,20 @@ class _GridRowItemState extends State<_GridRowItem> {
   bool _isHovering = false;
 
   @override
+  void initState() {
+    super.initState();
+
+    _isHovering = widget.isHovering;
+  }
+
+  @override
+  void didUpdateWidget(covariant _GridRowItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    _isHovering = widget.isHovering;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       // Instead of limiting the click area to child's clickable area,
@@ -237,8 +352,14 @@ class _GridRowItemState extends State<_GridRowItem> {
       onLongPress: widget.item.onLongPress?.call,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _isHovering = true),
-        onExit: (_) => setState(() => _isHovering = false),
+        onEnter: (_) {
+          widget.onHover(true);
+          setState(() => _isHovering = true);
+        },
+        onExit: (_) {
+          widget.onHover(false);
+          setState(() => _isHovering = false);
+        },
         child: Container(
           decoration: _getDecoration(),
           child: Row(
@@ -267,19 +388,18 @@ class _GridRowItemState extends State<_GridRowItem> {
   }
 
   BoxDecoration? _getDecoration() {
-    if (widget.showHeader) {
-      if (widget.isSelected) {
-        return widget.selectedDecoration ??
-            BoxDecoration(
-              color: Theme.of(context).primaryColor,
-            );
-      } else if (_isHovering) {
-        return widget.highlightDecoration ??
-            BoxDecoration(
-              color: Theme.of(context).splashColor,
-            );
-      }
+    if (widget.isSelected) {
+      return widget.selectedDecoration ??
+          BoxDecoration(
+            color: Theme.of(context).primaryColor,
+          );
+    } else if (_isHovering) {
+      return widget.highlightDecoration ??
+          BoxDecoration(
+            color: Theme.of(context).splashColor,
+          );
     }
+
     return null;
   }
 }
