@@ -30,7 +30,10 @@ class GridRowHeader extends StatelessWidget {
           // Instead of limiting the click area to child's clickable area,
           // use complete area of widget
           behavior: HitTestBehavior.opaque,
-          onTap: rows[index].onTap?.call,
+          onTap: () {
+            rows[index].onTap?.call();
+            rows[index].children.first.onTap?.call();
+          },
           onLongPress: rows[index].onLongPress?.call,
           child: SizedBox(
             height: rows[index].height,
@@ -174,16 +177,24 @@ class GridRows extends StatelessWidget {
             itemBuilder: (context, rowIndex) => GestureDetector(
               // Instead of limiting the click area to child's clickable area,
               // use complete area of widget
-              behavior: HitTestBehavior.opaque,
+              behavior: HitTestBehavior.translucent,
               onTap: rows[rowIndex].onTap?.call,
               onLongPress: rows[rowIndex].onLongPress?.call,
               child: Row(
                 children: [
                   for (int i = 1; i < indices.length; i++)
-                    SizedBox(
-                      height: rows[rowIndex].height,
-                      width: columnWidths[i],
-                      child: rows[rowIndex].children[indices[i]].child,
+                    GestureDetector(
+                      // As small as possible so only content is tapped
+                      onTap: () {
+                        rows[rowIndex].children[indices[i]].onTap?.call();
+                        // This detector absorbs onTap so also invoke GridRow onTap
+                        rows[rowIndex].onTap?.call();
+                      },
+                      child: SizedBox(
+                        height: rows[rowIndex].height,
+                        width: columnWidths[i],
+                        child: rows[rowIndex].children[indices[i]].child,
+                      ),
                     ),
                 ],
               ),
