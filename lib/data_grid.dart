@@ -113,8 +113,12 @@ class _GridState extends State<Grid> {
     double offset = 0;
     for (int i = 1; i < index + 1; i++) {
       if (widget.columns[i].autoFitWidth) {
-        offset +=
-            calculateAutoFitColumnWidth(i, widget.columns[i], widget.rows);
+        offset += calculateAutoFitColumnWidth(
+          i,
+          widget.columns[i],
+          widget.rows,
+          hasIcon: widget.columns[i].isSortable,
+        );
       } else {
         offset += widget.columns[i].width;
       }
@@ -201,6 +205,7 @@ class _GridState extends State<Grid> {
             i,
             widget.columns[i],
             widget.rows,
+            hasIcon: columns[i].isSortable,
           );
         }
       }
@@ -210,19 +215,21 @@ class _GridState extends State<Grid> {
   double calculateAutoFitColumnWidth(
     int columnIndex,
     GridColumn column,
-    List<GridRow> rows,
-  ) {
+    List<GridRow> rows, {
+    required bool hasIcon,
+  }) {
     assert(column._autoFitColumnData != null);
 
-    final sortIconWidth = widget.sortingIconSettings.size;
-    final sortIconPadding = widget.sortingIconSettings.padding.horizontal;
+    final sortingIconAndPaddingWidth = hasIcon
+        ? widget.sortingIconSettings.size +
+            widget.sortingIconSettings.padding.horizontal
+        : 0;
 
     double width = _textWidth(
           column._autoFitColumnData!.text,
           column._autoFitColumnData?.style,
         ) +
-        sortIconWidth +
-        sortIconPadding +
+        sortingIconAndPaddingWidth +
         (column._autoFitColumnData!.padding?.horizontal ?? 0);
 
     for (int j = 0; j < widget.rows.length; j++) {
@@ -470,6 +477,9 @@ class GridColumn {
     /// Whether mainAxisAlignment should be start or end
     this.mainAxisAlignment = MainAxisAlignment.spaceEvenly,
 
+    /// Whether the column can be sorted
+    this.isSortable = true,
+
     /// Whether to hide this column or not
     this.hide = false,
   })  : assert(context != null || style != null),
@@ -510,6 +520,9 @@ class GridColumn {
 
     /// Whether to hide this column or not
     this.hide = false,
+
+    /// Whether the column can be sorted
+    this.isSortable = true,
   })  : assert(context != null || style != null),
         _autoFitColumnData =
             _createAutoFitColumnData(padding, text, style, context),
@@ -548,6 +561,9 @@ class GridColumn {
 
     /// Whether to hide this column or not
     this.hide = false,
+
+    /// Whether the column can be sorted
+    this.isSortable = true,
   })  : assert(context != null || style != null),
         _autoFitColumnData =
             _createAutoFitColumnData(padding, text, style, context),
@@ -555,6 +571,7 @@ class GridColumn {
         width = -1,
         child =
             _createChild(alignment, padding, text, textAlign, style, context);
+
   GridColumn.fixedWidth({
     required this.child,
     this.width = 80,
@@ -562,6 +579,7 @@ class GridColumn {
     this.trailingIcon = false,
     this.mainAxisAlignment = MainAxisAlignment.end,
     this.hide = false,
+    this.isSortable = true,
   })  : _autoFitColumnData = null,
         autoFitWidth = false,
         assert(width > 0);
@@ -578,6 +596,7 @@ class GridColumn {
   final MainAxisAlignment mainAxisAlignment;
   bool hide;
   SortingState sortingState = SortingState.none;
+  final bool isSortable;
 }
 
 class GridRow {
