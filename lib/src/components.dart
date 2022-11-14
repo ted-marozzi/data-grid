@@ -148,6 +148,7 @@ class GridColumnHeader extends StatelessWidget {
     required this.physics,
     required this.indices,
     required this.sortingIconSettings,
+    required this.hasRowHeader,
   }) : super(key: key);
 
   final List<GridColumn> columns;
@@ -155,6 +156,7 @@ class GridColumnHeader extends StatelessWidget {
   final ScrollPhysics? physics;
   final List<int> indices;
   final SortingIconSettings sortingIconSettings;
+  final bool hasRowHeader;
 
   @override
   Widget build(BuildContext context) {
@@ -163,19 +165,21 @@ class GridColumnHeader extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          GridColumnHeaderCell(
-            sortColumn: () => sortByColumn(indices.first),
-            column: columns[indices.first],
-            sortingIconSettings: sortingIconSettings,
-          ),
+          if (hasRowHeader)
+            GridColumnHeaderCell(
+              sortColumn: () => sortByColumn(indices.first),
+              column: columns[indices.first],
+              sortingIconSettings: sortingIconSettings,
+            ),
           Expanded(
             child: ListView.builder(
                 physics: physics,
                 controller: scrollController,
                 scrollDirection: Axis.horizontal,
-                itemCount: indices.length - 1,
+                itemCount: hasRowHeader ? indices.length - 1 : indices.length,
                 itemBuilder: (context, columnIndex) {
-                  int index = indices[columnIndex + 1];
+                  int index =
+                      indices[hasRowHeader ? columnIndex + 1 : columnIndex];
                   return GridColumnHeaderCell(
                     sortColumn: () => sortByColumn(index),
                     column: columns[index],

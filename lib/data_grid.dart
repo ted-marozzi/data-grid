@@ -300,6 +300,7 @@ class _GridState extends State<Grid> {
           indices: indices,
           scrollController: columnHeaderController,
           sortingIconSettings: widget.dataGridThemeData.sortingIconSettings,
+          hasRowHeader: widget.hasRowHeader,
         ),
         SizedBox(
           width: calculateColumnWidths(indices)
