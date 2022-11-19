@@ -2,9 +2,12 @@ library data_grid;
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:data_grid/src/components.dart';
+import 'package:data_grid/src/data_grid_theme.dart';
+import 'package:flutter/material.dart';
 import 'package:sync_scroll_controller/sync_scroll_controller.dart';
+
+export 'package:data_grid/src/data_grid_theme.dart';
 
 /// The [Grid]
 class Grid extends StatefulWidget {
@@ -40,7 +43,13 @@ class Grid extends StatefulWidget {
     Widget Function(BuildContext, int)? horizontalSeparatorBuilder,
 
     /// Settings for sorting icons
-    this.sortingIconSettings = const SortingIconSettings(),
+    this.dataGridThemeData = const DataGridThemeData(),
+
+    /// Whether each row has a header (which contents can scroll behind)
+    this.hasRowHeader = true,
+
+    /// The current selected row index
+    this.selectedRowIndex,
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
         ),
@@ -75,7 +84,13 @@ class Grid extends StatefulWidget {
   final ScrollPhysics? physics;
 
   /// Settings for sorting icons
-  final SortingIconSettings sortingIconSettings;
+  final DataGridThemeData dataGridThemeData;
+
+  /// Whether each row has a header (which contents can scroll behind)
+  final bool hasRowHeader;
+
+  /// The current selected row index
+  final int? selectedRowIndex;
 
   @override
   State<Grid> createState() => _GridState();
@@ -89,6 +104,11 @@ class _GridState extends State<Grid> {
   final verticalControllers = SyncScrollControllerGroup();
   late final SyncScrollControllerGroup horizontalControllers;
   List<int> indices = [];
+  // a row is hovered if either the header is hovered or remaining rows are hovered
+  int? _hoveringRowIndexHeader;
+  int? _hoveringRowIndexRows;
+  int? get _hoveringRowIndex =>
+      _hoveringRowIndexHeader ?? _hoveringRowIndexRows;
 
   @override
   void initState() {
@@ -214,8 +234,9 @@ class _GridState extends State<Grid> {
   ) {
     assert(column._autoFitColumnData != null);
 
-    final sortIconWidth = widget.sortingIconSettings.size;
-    final sortIconPadding = widget.sortingIconSettings.padding.horizontal;
+    final sortIconWidth = widget.dataGridThemeData.sortingIconSettings.size;
+    final sortIconPadding =
+        widget.dataGridThemeData.sortingIconSettings.padding.horizontal;
 
     double width = _textWidth(
           column._autoFitColumnData!.text,
@@ -278,7 +299,8 @@ class _GridState extends State<Grid> {
           columns: widget.columns,
           indices: indices,
           scrollController: columnHeaderController,
-          sortingIconSettings: widget.sortingIconSettings,
+          sortingIconSettings: widget.dataGridThemeData.sortingIconSettings,
+          hasRowHeader: widget.hasRowHeader,
         ),
         SizedBox(
           width: calculateColumnWidths(indices)
@@ -289,13 +311,23 @@ class _GridState extends State<Grid> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GridRowHeader(
-                physics: widget.physics,
-                rows: widget.rows,
-                width: widget.columns.first.width,
-                scrollController: rowHeaderController,
-                separatorBuilder: widget.horizontalSeparatorBuilder,
-              ),
+              if (widget.hasRowHeader)
+                GridRowHeader(
+                  physics: widget.physics,
+                  rows: widget.rows,
+                  width: widget.columns.first.width,
+                  scrollController: rowHeaderController,
+                  separatorBuilder: widget.horizontalSeparatorBuilder,
+                  hoveringRowIndex: _hoveringRowIndex,
+                  onHoverIndex: (index) => setState(
+                    () => _hoveringRowIndexHeader = index,
+                  ),
+                  highlightDecoration:
+                      widget.dataGridThemeData.rowHighlightDecoration,
+                  selectedRowIndex: widget.selectedRowIndex,
+                  selectedDecoration:
+                      widget.dataGridThemeData.rowSelectedDecoration,
+                ),
               GridRows(
                 indices: indices,
                 physics: widget.physics,
@@ -304,6 +336,16 @@ class _GridState extends State<Grid> {
                 horizontalSeparatorBuilder: widget.horizontalSeparatorBuilder,
                 rowsControllerY: rowsControllerY,
                 rowsControllerX: rowsControllerX,
+                showHeader: !widget.hasRowHeader,
+                hoveringRowIndex: _hoveringRowIndex,
+                onHoverIndex: (index) => setState(
+                  () => _hoveringRowIndexRows = index,
+                ),
+                highlightDecoration:
+                    widget.dataGridThemeData.rowHighlightDecoration,
+                selectedRowIndex: widget.selectedRowIndex,
+                selectedDecoration:
+                    widget.dataGridThemeData.rowSelectedDecoration,
               ),
             ],
           ),
@@ -647,41 +689,4 @@ enum SortingState {
         return SortingState.descending;
     }
   }
-}
-
-class SortingIconSettings {
-  final IconData ascending;
-  final IconData descending;
-  final double size;
-  final Color? color;
-  final EdgeInsets padding;
-
-  const SortingIconSettings({
-    this.ascending = Icons.arrow_upward_rounded,
-    this.descending = Icons.arrow_downward_rounded,
-    this.size = 20,
-    this.color,
-    this.padding = const EdgeInsets.symmetric(horizontal: 4.0),
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is SortingIconSettings &&
-        other.ascending == ascending &&
-        other.descending == descending &&
-        other.size == size &&
-        other.color == color &&
-        other.padding == padding;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        ascending,
-        descending,
-        size,
-        color,
-        padding,
-      );
 }
