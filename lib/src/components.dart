@@ -15,6 +15,7 @@ class GridRowHeader extends StatelessWidget {
     this.highlightDecoration,
     this.selectedRowIndex,
     this.selectedDecoration,
+    required this.columnSpacing,
   }) : super(key: key);
 
   final double width;
@@ -27,11 +28,12 @@ class GridRowHeader extends StatelessWidget {
   final BoxDecoration? highlightDecoration;
   final int? selectedRowIndex;
   final BoxDecoration? selectedDecoration;
+  final double columnSpacing;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width,
+      width: width + columnSpacing,
       child: ListView.separated(
         physics: physics,
         separatorBuilder: separatorBuilder,
@@ -44,6 +46,7 @@ class GridRowHeader extends StatelessWidget {
           highlightDecoration: highlightDecoration,
           isSelected: selectedRowIndex == index,
           selectedDecoration: selectedDecoration,
+          columnSpacing: columnSpacing,
         ),
       ),
     );
@@ -59,6 +62,7 @@ class _GridRowHeaderItem extends StatefulWidget {
     this.highlightDecoration,
     this.isSelected = false,
     this.selectedDecoration,
+    required this.columnSpacing,
   }) : super(key: key);
 
   final GridRow item;
@@ -67,6 +71,7 @@ class _GridRowHeaderItem extends StatefulWidget {
   final BoxDecoration? highlightDecoration;
   final bool isSelected;
   final BoxDecoration? selectedDecoration;
+  final double columnSpacing;
 
   @override
   State<_GridRowHeaderItem> createState() => _GridRowHeaderItemState();
@@ -112,8 +117,20 @@ class _GridRowHeaderItemState extends State<_GridRowHeaderItem> {
         },
         child: Container(
           decoration: _getDecoration(),
-          height: widget.item.height,
-          child: widget.item.children.first.child,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: widget.item.height,
+                child: widget.item.children.first.child,
+              ),
+              if (widget.columnSpacing > 0)
+                SizedBox(
+                  height: widget.item.height,
+                  width: widget.columnSpacing,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -149,6 +166,7 @@ class GridColumnHeader extends StatelessWidget {
     required this.indices,
     required this.sortingIconSettings,
     required this.hasRowHeader,
+    required this.columnSpacing,
   }) : super(key: key);
 
   final List<GridColumn> columns;
@@ -157,6 +175,7 @@ class GridColumnHeader extends StatelessWidget {
   final List<int> indices;
   final SortingIconSettings sortingIconSettings;
   final bool hasRowHeader;
+  final double columnSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +189,7 @@ class GridColumnHeader extends StatelessWidget {
               sortColumn: () => sortByColumn(indices.first),
               column: columns[indices.first],
               sortingIconSettings: sortingIconSettings,
+              columnSpacing: columnSpacing,
             ),
           Expanded(
             child: ListView.builder(
@@ -184,6 +204,7 @@ class GridColumnHeader extends StatelessWidget {
                     sortColumn: () => sortByColumn(index),
                     column: columns[index],
                     sortingIconSettings: sortingIconSettings,
+                    columnSpacing: columnSpacing,
                   );
                 }),
           ),
@@ -199,11 +220,13 @@ class GridColumnHeaderCell extends StatelessWidget {
     required this.sortColumn,
     required this.column,
     required this.sortingIconSettings,
+    required this.columnSpacing,
   }) : super(key: key);
 
   final void Function() sortColumn;
   final GridColumn column;
   final SortingIconSettings sortingIconSettings;
+  final double columnSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +236,7 @@ class GridColumnHeaderCell extends StatelessWidget {
     );
 
     return SizedBox(
-      width: column.width,
+      width: column.width + columnSpacing,
       child: InkWell(
         onTap: sortColumn,
         // So the inkwell takes the whole space available
@@ -225,6 +248,10 @@ class GridColumnHeaderCell extends StatelessWidget {
               if (!column.trailingIcon) sortIcon,
               column.child,
               if (column.trailingIcon) sortIcon,
+              if (columnSpacing > 0)
+                SizedBox(
+                  width: columnSpacing,
+                ),
             ],
           ),
         ),
@@ -249,6 +276,7 @@ class GridRows extends StatelessWidget {
     this.highlightDecoration,
     this.selectedRowIndex,
     this.selectedDecoration,
+    required this.columnSpacing,
   }) : super(key: key);
 
   final List<GridRow> rows;
@@ -263,6 +291,7 @@ class GridRows extends StatelessWidget {
   final BoxDecoration? highlightDecoration;
   final int? selectedRowIndex;
   final BoxDecoration? selectedDecoration;
+  final double columnSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +304,7 @@ class GridRows extends StatelessWidget {
           width: columnWidths.fold<double>(
             // when header isn't shown, remove the header row width
             showHeader ? 0 : -columnWidths.first,
-            (previousValue, width) => previousValue + width,
+            (previousValue, width) => previousValue + width + columnSpacing,
           ),
           child: ListView.separated(
             physics: physics,
@@ -293,6 +322,7 @@ class GridRows extends StatelessWidget {
               highlightDecoration: highlightDecoration,
               isSelected: selectedRowIndex == rowIndex,
               selectedDecoration: selectedDecoration,
+              columnSpacing: columnSpacing,
             ),
           ),
         ),
@@ -312,6 +342,7 @@ class _GridRowItem extends StatefulWidget {
     this.highlightDecoration,
     this.isSelected = false,
     this.selectedDecoration,
+    required this.columnSpacing,
     Key? key,
   }) : super(key: key);
 
@@ -324,6 +355,7 @@ class _GridRowItem extends StatefulWidget {
   final BoxDecoration? highlightDecoration;
   final bool isSelected;
   final BoxDecoration? selectedDecoration;
+  final double columnSpacing;
 
   @override
   State<_GridRowItem> createState() => _GridRowItemState();
@@ -370,7 +402,7 @@ class _GridRowItemState extends State<_GridRowItem> {
             children: [
               for (int i = widget.showHeader ? 0 : 1;
                   i < widget.indices.length;
-                  i++)
+                  i++) ...[
                 GestureDetector(
                   // As small as possible so only content is tapped
                   onTap: () {
@@ -384,6 +416,12 @@ class _GridRowItemState extends State<_GridRowItem> {
                     child: widget.item.children[widget.indices[i]].child,
                   ),
                 ),
+                if (widget.columnSpacing > 0)
+                  SizedBox(
+                    height: widget.item.height,
+                    width: widget.columnSpacing,
+                  ),
+              ],
             ],
           ),
         ),

@@ -50,6 +50,9 @@ class Grid extends StatefulWidget {
 
     /// The current selected row index
     this.selectedRowIndex,
+
+    /// Spacing between columns
+    this.columnSpacing = 0,
   })  : assert(
           rows.every((element) => element.children.length == columns.length),
         ),
@@ -91,6 +94,9 @@ class Grid extends StatefulWidget {
 
   /// The current selected row index
   final int? selectedRowIndex;
+
+  /// Spacing between columns
+  final double columnSpacing;
 
   @override
   State<Grid> createState() => _GridState();
@@ -244,7 +250,8 @@ class _GridState extends State<Grid> {
         ) +
         sortIconWidth +
         sortIconPadding +
-        (column._autoFitColumnData!.padding?.horizontal ?? 0);
+        (column._autoFitColumnData!.padding?.horizontal ?? 0) +
+        widget.columnSpacing;
 
     for (int j = 0; j < widget.rows.length; j++) {
       final autoFitColumnData =
@@ -301,10 +308,12 @@ class _GridState extends State<Grid> {
           scrollController: columnHeaderController,
           sortingIconSettings: widget.dataGridThemeData.sortingIconSettings,
           hasRowHeader: widget.hasRowHeader,
+          columnSpacing: widget.columnSpacing,
         ),
         SizedBox(
-          width: calculateColumnWidths(indices)
-              .reduce((value, element) => value + element),
+          width: calculateColumnWidths(indices).reduce(
+            (value, element) => value + element + widget.columnSpacing,
+          ),
           child: widget.horizontalHeaderSeparatorBuilder(context),
         ),
         Expanded(
@@ -327,6 +336,7 @@ class _GridState extends State<Grid> {
                   selectedRowIndex: widget.selectedRowIndex,
                   selectedDecoration:
                       widget.dataGridThemeData.rowSelectedDecoration,
+                  columnSpacing: widget.columnSpacing,
                 ),
               GridRows(
                 indices: indices,
@@ -346,6 +356,7 @@ class _GridState extends State<Grid> {
                 selectedRowIndex: widget.selectedRowIndex,
                 selectedDecoration:
                     widget.dataGridThemeData.rowSelectedDecoration,
+                columnSpacing: widget.columnSpacing,
               ),
             ],
           ),
