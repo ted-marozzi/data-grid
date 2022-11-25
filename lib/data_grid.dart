@@ -31,6 +31,9 @@ class Grid extends StatefulWidget {
     /// The column index to sort initially
     this.defaultSortedColumnIndex = 0,
 
+    /// On initial launch, whether icon on [defaultSortedColumnIndex] should be shown
+    this.shouldInitiallyShowSortIcon = false,
+
     /// Scroll Physics for the [Grid]
     this.physics,
 
@@ -80,6 +83,9 @@ class Grid extends StatefulWidget {
   /// The column index to sort initially
   final int defaultSortedColumnIndex;
 
+  /// On initial launch, whether icon on [defaultSortedColumnIndex] should be shown
+  final bool shouldInitiallyShowSortIcon;
+
   /// Scroll Physics for the [Grid]
   final ScrollPhysics? physics;
 
@@ -126,7 +132,10 @@ class _GridState extends State<Grid> {
 
     indices = createVirtualColumnIndices();
 
-    sortByColumn(widget.defaultSortedColumnIndex, false);
+    sortByColumn(
+      widget.defaultSortedColumnIndex,
+      widget.shouldInitiallyShowSortIcon,
+    );
   }
 
   double calculateColumnOffset(int index) {
