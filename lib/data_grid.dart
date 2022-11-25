@@ -338,9 +338,10 @@ class _GridState extends State<Grid> {
                 rowsControllerX: rowsControllerX,
                 showHeader: !widget.hasRowHeader,
                 hoveringRowIndex: _hoveringRowIndex,
-                onHoverIndex: (index) => setState(
-                  () => _hoveringRowIndexRows = index,
-                ),
+                // only sync hover state if there are row headers, otherwise unnecessary rebuilds
+                onHoverIndex: (index) => widget.hasRowHeader
+                    ? setState(() => _hoveringRowIndexRows = index)
+                    : {},
                 highlightDecoration:
                     widget.dataGridThemeData.rowHighlightDecoration,
                 selectedRowIndex: widget.selectedRowIndex,
